@@ -577,6 +577,42 @@
               <input type="text" id="candProctor" required value="Crewing Superintendent - PT SOSM"
                 class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
             </div>
+
+            <!-- Phone / WhatsApp Number -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Phone / WhatsApp Number <span class="text-rose-600">*</span>
+              </label>
+              <input type="tel" id="candPhone" required placeholder="e.g. +62 812-3456-7890"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- Email Address -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Email Address <span class="text-rose-600">*</span>
+              </label>
+              <input type="email" id="candEmail" required placeholder="e.g. pelaut@gmail.com"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- Seaman Book Number -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Seaman Book No. / No. Buku Pelaut <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="candSeamanBook" required placeholder="e.g. C.092831 / B.102948"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono" />
+            </div>
+
+            <!-- Passport Number -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Passport No. / Nomor Paspor <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="candPassport" required placeholder="e.g. X1234567 / B9876543"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono" />
+            </div>
           </div>
 
           <!-- AUTO-ASSIGNED MODULE PREVIEW BOX -->
@@ -935,6 +971,10 @@
   id text primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   full_name text not null,
+  phone text,
+  email text,
+  seaman_book text,
+  passport text,
   rank_applied text,
   department text,
   rank_category text,
@@ -1173,6 +1213,22 @@ alter publication supabase_realtime add table public.candidate_records;</code></
             <div>
               <span class="text-slate-500 block">CoC / CoP Grade</span>
               <strong id="scCoc" class="text-navy-900">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Phone / WhatsApp</span>
+              <strong id="scPhone" class="text-navy-900 font-mono">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Email Address</span>
+              <strong id="scEmail" class="text-navy-900 break-all">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Seaman Book No.</span>
+              <strong id="scSeamanBook" class="text-navy-900 font-mono">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Passport No.</span>
+              <strong id="scPassport" class="text-navy-900 font-mono">-</strong>
             </div>
             <div class="sm:col-span-2">
               <span class="text-slate-500 block">Vessel Type / GT / KW</span>
@@ -2611,6 +2667,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       {
         id: "CAND-1001",
         fullName: "Rizky Pratama Putra",
+        phone: "+62 812-8821-4451",
+        email: "rizky.pratama@gmail.com",
+        seamanBook: "C.084129",
+        passport: "B8831924",
         rankApplied: "2nd Officer",
         department: "Deck",
         rankCategory: "Officer",
@@ -2630,6 +2690,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       {
         id: "CAND-1002",
         fullName: "Dimas Bayu Nugroho",
+        phone: "+62 813-9102-3841",
+        email: "dimas.bayu@yahoo.com",
+        seamanBook: "C.092104",
+        passport: "B7719203",
         rankApplied: "4th Engineer",
         department: "Engine",
         rankCategory: "Officer",
@@ -2649,6 +2713,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       {
         id: "CAND-1003",
         fullName: "Yohanes Baptista Latupeirissa",
+        phone: "+62 821-4471-9920",
+        email: "yohanes.latupeirissa@outlook.com",
+        seamanBook: "B.041829",
+        passport: "A9102847",
         rankApplied: "Able Seaman (AB)",
         department: "Deck",
         rankCategory: "Rating",
@@ -2668,6 +2736,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       {
         id: "CAND-1004",
         fullName: "Slamet Riyadi",
+        phone: "+62 857-3310-4821",
+        email: "slamet.riyadi91@gmail.com",
+        seamanBook: "B.058192",
+        passport: "B3910284",
         rankApplied: "Oiler / Motorman",
         department: "Engine",
         rankCategory: "Rating",
@@ -2687,6 +2759,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       {
         id: "CAND-1005",
         fullName: "Capt. Andreas Gunawan",
+        phone: "+62 811-9204-1188",
+        email: "capt.andreas.g@gmail.com",
+        seamanBook: "C.038102",
+        passport: "X1049281",
         rankApplied: "Chief Officer",
         department: "Deck",
         rankCategory: "Officer",
@@ -2807,7 +2883,16 @@ alter publication supabase_realtime add table public.candidate_records;</code></
         if (saved) {
           const parsed = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            candidateRecords = parsed;
+            candidateRecords = parsed.map(r => {
+              const defaultMatch = DEFAULT_CANDIDATES.find(d => d.id === r.id);
+              return {
+                ...r,
+                phone: r.phone || (defaultMatch ? defaultMatch.phone : ""),
+                email: r.email || (defaultMatch ? defaultMatch.email : ""),
+                seamanBook: r.seamanBook || (defaultMatch ? defaultMatch.seamanBook : ""),
+                passport: r.passport || (defaultMatch ? defaultMatch.passport : "")
+              };
+            });
             return;
           }
         }
@@ -2843,6 +2928,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       return {
         id: rec.id,
         full_name: rec.fullName || "",
+        phone: rec.phone || "",
+        email: rec.email || "",
+        seaman_book: rec.seamanBook || "",
+        passport: rec.passport || "",
         rank_applied: rec.rankApplied || "",
         department: rec.department || "",
         rank_category: rec.rankCategory || "",
@@ -2865,6 +2954,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       return {
         id: row.id,
         fullName: row.full_name || "",
+        phone: row.phone || "",
+        email: row.email || "",
+        seamanBook: row.seaman_book || "",
+        passport: row.passport || "",
         rankApplied: row.rank_applied || "",
         department: row.department || "",
         rankCategory: row.rank_category || "",
@@ -3315,7 +3408,11 @@ alter publication supabase_realtime add table public.candidate_records;</code></
           r.fullName.toLowerCase().includes(searchVal) ||
           r.rankApplied.toLowerCase().includes(searchVal) ||
           r.vesselType.toLowerCase().includes(searchVal) ||
-          r.cocGrade.toLowerCase().includes(searchVal);
+          r.cocGrade.toLowerCase().includes(searchVal) ||
+          (r.phone && r.phone.toLowerCase().includes(searchVal)) ||
+          (r.email && r.email.toLowerCase().includes(searchVal)) ||
+          (r.seamanBook && r.seamanBook.toLowerCase().includes(searchVal)) ||
+          (r.passport && r.passport.toLowerCase().includes(searchVal));
         const matchesDept = deptVal === "ALL" || r.department === deptVal;
         const matchesCat = catVal === "ALL" || r.rankCategory === catVal;
         const matchesStatus = statusVal === "ALL" || r.metrics.statusShort === statusVal;
@@ -3336,8 +3433,18 @@ alter publication supabase_realtime add table public.candidate_records;</code></
             return `
               <tr class="hover:bg-slate-50/90 transition">
                 <td class="py-3.5 px-4 font-bold text-navy-900">
-                  <div>${escapeHtml(r.fullName)}</div>
-                  <div class="text-[11px] font-normal text-slate-400">${escapeHtml(r.id)}</div>
+                  <div class="text-sm">${escapeHtml(r.fullName)}</div>
+                  <div class="text-[11px] font-normal text-slate-500 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                    <span class="font-mono text-slate-400">${escapeHtml(r.id)}</span>
+                    ${r.phone ? `<span>&bull;</span> <span>📱 ${escapeHtml(r.phone)}</span>` : ''}
+                    ${r.email ? `<span>&bull;</span> <span>✉️ ${escapeHtml(r.email)}</span>` : ''}
+                  </div>
+                  ${(r.seamanBook || r.passport) ? `
+                    <div class="text-[10px] text-slate-500 font-normal flex flex-wrap items-center gap-1.5 mt-1">
+                      ${r.seamanBook ? `<span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono border border-slate-200">⚓ SB: ${escapeHtml(r.seamanBook)}</span>` : ''}
+                      ${r.passport ? `<span class="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono border border-slate-200">🛂 Pass: ${escapeHtml(r.passport)}</span>` : ''}
+                    </div>
+                  ` : ''}
                 </td>
                 <td class="py-3.5 px-4 font-semibold text-slate-800">${escapeHtml(r.rankApplied)}</td>
                 <td class="py-3.5 px-4">
@@ -3523,6 +3630,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       const headers = [
         "Candidate_ID",
         "Full_Name",
+        "Phone_WhatsApp",
+        "Email_Address",
+        "Seaman_Book_No",
+        "Passport_No",
         "Rank_Applied",
         "Department",
         "Rank_Category",
@@ -3548,6 +3659,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
         return [
           r.id,
           r.fullName,
+          r.phone || "",
+          r.email || "",
+          r.seamanBook || "",
+          r.passport || "",
           r.rankApplied,
           r.department,
           r.rankCategory,
@@ -3601,6 +3716,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       document.getElementById("scRank").textContent = rec.rankApplied;
       document.getElementById("scDeptCat").textContent = `${rec.department} — ${rec.rankCategory}`;
       document.getElementById("scCoc").textContent = rec.cocGrade;
+      document.getElementById("scPhone").textContent = rec.phone || "-";
+      document.getElementById("scEmail").textContent = rec.email || "-";
+      document.getElementById("scSeamanBook").textContent = rec.seamanBook || "-";
+      document.getElementById("scPassport").textContent = rec.passport || "-";
       document.getElementById("scVessel").textContent = `${rec.vesselType} | ${rec.gtKw}`;
       document.getElementById("scDate").textContent = rec.testDate;
       document.getElementById("scProctor").textContent = rec.proctor;
@@ -3698,6 +3817,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
     function startCandidateExam(event) {
       event.preventDefault();
       const fullName = document.getElementById("candName").value.trim();
+      const phone = document.getElementById("candPhone").value.trim();
+      const email = document.getElementById("candEmail").value.trim();
+      const seamanBook = document.getElementById("candSeamanBook").value.trim();
+      const passport = document.getElementById("candPassport").value.trim();
       const rankApplied = document.getElementById("candRank").value.trim();
       const department = document.getElementById("candDept").value;
       const rankCategory = document.getElementById("candCategory").value;
@@ -3729,6 +3852,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       currentExamSession = {
         profile: {
           fullName,
+          phone,
+          email,
+          seamanBook,
+          passport,
           rankApplied,
           department,
           rankCategory,
@@ -3979,6 +4106,10 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       const newRecord = {
         id: newId,
         fullName: currentExamSession.profile.fullName,
+        phone: currentExamSession.profile.phone || "",
+        email: currentExamSession.profile.email || "",
+        seamanBook: currentExamSession.profile.seamanBook || "",
+        passport: currentExamSession.profile.passport || "",
         rankApplied: currentExamSession.profile.rankApplied,
         department: currentExamSession.profile.department,
         rankCategory: currentExamSession.profile.rankCategory,
