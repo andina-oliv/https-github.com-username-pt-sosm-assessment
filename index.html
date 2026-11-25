@@ -11,6 +11,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <!-- Supabase JS Client via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SheetJS for Native Excel (.xlsx) Export via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- html2pdf.js for Direct Client-side PDF Generation via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -227,25 +231,53 @@
               Qs)</strong> + <strong class="text-navy-800">70% Role Technical &amp; Practical Skill (20 Qs)</strong>
           </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- EXCEL SHEET BUTTON -->
+          <button onclick="exportCandidatesExcel()"
+            class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            title="Download Rekap Kandidat format Excel Sheet (.xlsx)">
+            <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <span>📊 Excel Sheet</span>
+          </button>
+
+          <!-- PDF EXPORT BUTTON -->
+          <button onclick="exportDashboardPDF()"
+            class="px-3.5 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            title="Download / Cetak Dokumen PDF Resmi Rekapitulasi">
+            <svg class="w-4 h-4 text-rose-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+            <span>📄 Export PDF</span>
+          </button>
+
+          <!-- CSV EXPORT BUTTON -->
           <button onclick="exportCandidatesCSV()"
-            class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+            class="px-3 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-slate-200 text-xs font-semibold shadow-sm transition flex items-center gap-1.5"
+            title="Download data mentah format CSV">
             <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            <span>Export CSV / Excel</span>
+            <span>CSV</span>
           </button>
+
+          <!-- GANTI PIN BUTTON -->
           <button onclick="openChangePinModal()"
             class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-300 transition flex items-center gap-1.5"
             title="Ubah PIN Akses Crewing">
             <span>🔑 Ganti PIN</span>
           </button>
+
+          <!-- KUNCI DASHBOARD BUTTON -->
           <button onclick="toggleCrewingAuthModal()"
             class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200 transition flex items-center gap-1.5"
             title="Kunci Dashboard saat ditinggalkan">
             <span>🔒 Kunci Dashboard</span>
           </button>
+
+          <!-- RESET SAMPLE DATA BUTTON -->
           <button onclick="resetDemoData()"
             class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-300 transition">
             Reset Sample Data
@@ -1379,19 +1411,36 @@ alter publication supabase_realtime add table public.candidate_records;</code></
             class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
             Close Window
           </button>
-          <div class="flex items-center gap-2.5">
+          <div class="flex flex-wrap items-center gap-2">
             <button type="button" onclick="saveScorecardRemarks()"
-              class="px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold shadow-sm transition">
+              class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold shadow-sm transition">
               Save Remarks
             </button>
+            <button type="button" onclick="downloadScorecardPDF()"
+              class="px-3.5 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+              title="Unduh Scorecard Kandidat sebagai dokumen PDF">
+              <svg class="w-4 h-4 text-rose-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+              </svg>
+              <span>📄 Unduh PDF</span>
+            </button>
+            <button type="button" onclick="exportSingleScorecardExcel()"
+              class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+              title="Unduh Scorecard Kandidat ke Excel Sheet">
+              <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span>📊 Excel</span>
+            </button>
             <button type="button" onclick="window.print()"
-              class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+              class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+              title="Cetak langsung Scorecard">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
                   d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
                 </path>
               </svg>
-              <span>Print Official Scorecard</span>
+              <span>🖨️ Print</span>
             </button>
           </div>
         </div>
@@ -3695,6 +3744,411 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       showToast("Exported candidate assessment log to CSV (Excel-compatible).", "success");
+    }
+
+    // =========================================================================
+    // EXCEL SHEET (.XLSX) EXPORT CONTROLLER
+    // =========================================================================
+    function exportCandidatesExcel() {
+      if (candidateRecords.length === 0) {
+        showToast("Tidak ada data kandidat untuk diekspor ke Excel.", "warning");
+        return;
+      }
+
+      if (typeof XLSX !== "undefined") {
+        try {
+          const headers = [
+            "No",
+            "ID Kandidat",
+            "Nama Lengkap",
+            "No. Telepon / WhatsApp",
+            "Email Address",
+            "No. Buku Pelaut (Seaman Book)",
+            "No. Paspor",
+            "Jabatan Dilamar",
+            "Departemen",
+            "Kategori",
+            "Tipe Kapal & Ukuran",
+            "Sertifikat CoC / CoP",
+            "Tanggal Tes",
+            "Proctor / Penguji",
+            "Modul Ujian",
+            "Part A Karakter (Benar)",
+            "Part A Bobot (30%)",
+            "Part B1 Teknis (Benar)",
+            "Part B2 Praktik (Benar)",
+            "Part B Bobot (70%)",
+            "Skor Komposit Akhir (%)",
+            "Status Kelulusan",
+            "Waktu Pengerjaan",
+            "Kesesuaian Sertifikat",
+            "Catatan Crewing / Oral Verification"
+          ];
+
+          const data = [headers];
+
+          candidateRecords.forEach((r, idx) => {
+            const m = computeCandidateMetrics(r);
+            data.push([
+              idx + 1,
+              r.id || "",
+              r.fullName || "",
+              r.phone || "",
+              r.email || "",
+              r.seamanBook || "",
+              r.passport || "",
+              r.rankApplied || "",
+              r.department || "",
+              r.rankCategory || "",
+              `${r.vesselType || ""} (${r.gtKw || ""})`,
+              r.cocGrade || "",
+              r.testDate || "",
+              r.proctor || "",
+              r.roleModule || "",
+              `${m.charCorrect} / 15`,
+              Number(m.charWeighted.toFixed(2)),
+              `${m.techCorrect} / 10`,
+              `${m.pracCorrect} / 10`,
+              Number(m.roleWeighted.toFixed(2)),
+              Number(m.compositeScore.toFixed(2)),
+              m.statusShort || "",
+              r.timeTaken || "",
+              r.certSuitability || "",
+              r.oralNotes || ""
+            ]);
+          });
+
+          const ws = XLSX.utils.aoa_to_sheet(data);
+
+          // Auto-adjust column widths
+          const colWidths = headers.map((h, colIdx) => {
+            let max = h.length;
+            data.forEach((row) => {
+              const val = row[colIdx] !== undefined && row[colIdx] !== null ? String(row[colIdx]) : "";
+              if (val.length > max) max = Math.min(val.length, 50);
+            });
+            return { wch: Math.max(max + 3, 12) };
+          });
+          ws["!cols"] = colWidths;
+
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Rekap Asesmen Kandidat");
+
+          // Summary Sheet
+          const total = candidateRecords.length;
+          const passed = candidateRecords.filter((r) => computeCandidateMetrics(r).compositeScore >= 70).length;
+          const avg = (candidateRecords.reduce((acc, r) => acc + computeCandidateMetrics(r).compositeScore, 0) / total).toFixed(1);
+
+          const summaryData = [
+            ["PT SEVEN OCEAN SHIP MANAGEMENT"],
+            ["REKAPITULASI RESMI PENILAIAN CREW ASSESSMENT"],
+            [""],
+            ["Tanggal Unduh", new Date().toLocaleString("id-ID")],
+            ["Total Pelaut Diuji", total],
+            ["Tingkat Kelulusan (Pass Rate)", `${((passed / total) * 100).toFixed(1)}% (${passed} dari ${total} Lulus)`],
+            ["Rata-rata Skor Komposit", `${avg}%`],
+            ["Standar Skor", ">= 80% (Pass - Excellent) | 70% - 79% (Pass - Competent) | < 70% (Fail)"],
+            [""],
+            ["Kerahasiaan", "DOKUMEN RAHASIA KHUSUS TIM CREWING PT SOSM"]
+          ];
+          const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+          wsSummary["!cols"] = [{ wch: 30 }, { wch: 45 }];
+          XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan Statistik");
+
+          const filename = `PT_SOSM_Rekap_Asesmen_${new Date().toISOString().slice(0, 10)}.xlsx`;
+          XLSX.writeFile(wb, filename);
+          showToast("File Excel Sheet (.xlsx) berhasil diunduh!", "success");
+          return;
+        } catch (err) {
+          console.warn("SheetJS export error, fallback to CSV:", err);
+        }
+      }
+
+      // Fallback to CSV if library is offline
+      exportCandidatesCSV();
+    }
+
+    // =========================================================================
+    // PDF REPORT EXPORT CONTROLLER (REKAP DASHBOARD)
+    // =========================================================================
+    function exportDashboardPDF() {
+      if (candidateRecords.length === 0) {
+        showToast("Tidak ada data kandidat untuk diekspor ke PDF.", "warning");
+        return;
+      }
+
+      const total = candidateRecords.length;
+      const passed = candidateRecords.filter((r) => computeCandidateMetrics(r).compositeScore >= 70).length;
+      const passRate = ((passed / total) * 100).toFixed(1);
+      const avg = (candidateRecords.reduce((acc, r) => acc + computeCandidateMetrics(r).compositeScore, 0) / total).toFixed(1);
+
+      const container = document.createElement("div");
+      container.style.padding = "24px";
+      container.style.fontFamily = "Inter, system-ui, -apple-system, sans-serif";
+      container.style.color = "#0f172a";
+      container.style.background = "#ffffff";
+      container.style.maxWidth = "1100px";
+      container.style.margin = "0 auto";
+
+      const rowsHtml = candidateRecords
+        .map((r, idx) => {
+          const m = computeCandidateMetrics(r);
+          const statusColor = m.compositeScore >= 80 ? "#059669" : m.compositeScore >= 70 ? "#d97706" : "#e11d48";
+          const statusBg = m.compositeScore >= 80 ? "#ecfdf5" : m.compositeScore >= 70 ? "#fffbeb" : "#fff1f2";
+          return `
+            <tr style="border-bottom: 1px solid #e2e8f0; font-size: 10px;">
+              <td style="padding: 7px 5px; text-align: center; color: #64748b;">${idx + 1}</td>
+              <td style="padding: 7px 5px;">
+                <strong style="color: #0b192c; font-size: 11px;">${escapeHtml(r.fullName)}</strong>
+                <div style="color: #64748b; font-size: 9px;">${escapeHtml(r.id)} &bull; 📱 ${escapeHtml(r.phone || '-')}</div>
+                <div style="color: #64748b; font-size: 9px;">✉️ ${escapeHtml(r.email || '-')}</div>
+              </td>
+              <td style="padding: 7px 5px;">
+                <strong>${escapeHtml(r.rankApplied)}</strong>
+                <div style="color: #64748b; font-size: 9px;">${escapeHtml(r.department)} &bull; ${escapeHtml(r.rankCategory)}</div>
+              </td>
+              <td style="padding: 7px 5px; font-size: 9px;">
+                <div>⚓ SB: <strong>${escapeHtml(r.seamanBook || '-')}</strong></div>
+                <div>🛂 Pass: <strong>${escapeHtml(r.passport || '-')}</strong></div>
+              </td>
+              <td style="padding: 7px 5px; font-size: 9px;">
+                <div>${escapeHtml(r.vesselType)}</div>
+                <div style="color: #64748b;">${escapeHtml(r.gtKw)}</div>
+              </td>
+              <td style="padding: 7px 5px; text-align: center;">${m.charCorrect}/15 (${m.charWeighted.toFixed(1)}%)</td>
+              <td style="padding: 7px 5px; text-align: center;">${m.roleCorrect}/20 (${m.roleWeighted.toFixed(1)}%)</td>
+              <td style="padding: 7px 5px; text-align: center; font-size: 12px; font-weight: 800; color: ${statusColor};">${m.compositeScore.toFixed(1)}%</td>
+              <td style="padding: 7px 5px; text-align: center;">
+                <span style="display: inline-block; padding: 2px 7px; border-radius: 9999px; font-size: 9px; font-weight: 700; background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor}40;">
+                  ${m.statusShort}
+                </span>
+              </td>
+              <td style="padding: 7px 5px; font-size: 9px; color: #475569; white-space: nowrap;">${escapeHtml(r.testDate)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      container.innerHTML = `
+        <div style="border-bottom: 3px solid #f59e0b; padding-bottom: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 48px; height: 48px; border-radius: 8px; background: #0b192c; display: flex; align-items: center; justify-content: center; color: #f59e0b; font-weight: 900; font-size: 16px;">
+              SOSM
+            </div>
+            <div>
+              <div style="font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #f59e0b; text-transform: uppercase;">PT SEVEN OCEAN SHIP MANAGEMENT</div>
+              <h1 style="font-size: 17px; font-weight: 800; color: #0b192c; margin: 2px 0 0 0;">REKAPITULASI RESMI CREW ASSESSMENT REPORT</h1>
+              <div style="font-size: 10px; color: #64748b;">Standar Penilaian STCW &amp; Perusahaan: 30% Karakter (15 Qs) + 70% Kompetensi Teknis/Praktis (20 Qs)</div>
+            </div>
+          </div>
+          <div style="text-align: right; font-size: 10px; color: #64748b;">
+            <div>Tanggal Cetak: <strong>${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</strong></div>
+            <div style="font-weight: 700; color: #0b192c;">Crewing Department &bull; Confidential</div>
+          </div>
+        </div>
+
+        <!-- KPI SUMMARY BOXES -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;">
+          <div style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Kandidat</div>
+            <div style="font-size: 16px; font-weight: 800; color: #0b192c;">${total} Pelaut</div>
+          </div>
+          <div style="padding: 8px 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;">
+            <div style="font-size: 9px; color: #065f46; font-weight: 700; text-transform: uppercase;">Tingkat Kelulusan</div>
+            <div style="font-size: 16px; font-weight: 800; color: #047857;">${passRate}%</div>
+          </div>
+          <div style="padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Rata-rata Skor Komposit</div>
+            <div style="font-size: 16px; font-weight: 800; color: #0b192c;">${avg}%</div>
+          </div>
+          <div style="padding: 8px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
+            <div style="font-size: 9px; color: #92400e; font-weight: 700; text-transform: uppercase;">Kandidat Lulus (Pass)</div>
+            <div style="font-size: 16px; font-weight: 800; color: #b45309;">${passed} dari ${total}</div>
+          </div>
+        </div>
+
+        <!-- RECAP TABLE -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10px;">
+          <thead>
+            <tr style="background: #0b192c; color: #ffffff; text-align: left; font-size: 9px; text-transform: uppercase;">
+              <th style="padding: 7px 5px; text-align: center;">No</th>
+              <th style="padding: 7px 5px;">Kandidat &amp; Kontak</th>
+              <th style="padding: 7px 5px;">Jabatan / Dept</th>
+              <th style="padding: 7px 5px;">Buku Pelaut &amp; Paspor</th>
+              <th style="padding: 7px 5px;">Tipe Kapal</th>
+              <th style="padding: 7px 5px; text-align: center;">Part A (30%)</th>
+              <th style="padding: 7px 5px; text-align: center;">Part B (70%)</th>
+              <th style="padding: 7px 5px; text-align: center;">Skor Akhir</th>
+              <th style="padding: 7px 5px; text-align: center;">Status</th>
+              <th style="padding: 7px 5px;">Tgl Ujian</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <!-- SIGNATURE AREA -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 14px; border-top: 1px dashed #cbd5e1; font-size: 10px;">
+          <div>
+            <div style="color: #64748b; font-size: 9px;">Catatan:</div>
+            <div style="color: #334155; font-size: 9px;">Dokumen ini merupakan rekapitulasi nilai resmi untuk evaluasi penempatan kapal PT SOSM.</div>
+          </div>
+          <div style="text-align: center; width: 220px;">
+            <div style="color: #64748b; margin-bottom: 40px;">Diverifikasi oleh:</div>
+            <div style="font-weight: 800; color: #0b192c; text-decoration: underline;">Capt. Crewing Superintendent</div>
+            <div style="color: #64748b; font-size: 9px;">PT SEVEN OCEAN SHIP MANAGEMENT</div>
+          </div>
+        </div>
+      `;
+
+      if (typeof html2pdf !== "undefined") {
+        showToast("Membuat dokumen PDF Rekap Asesmen...", "info");
+        const opt = {
+          margin: [8, 8, 8, 8],
+          filename: `PT_SOSM_Rekap_Asesmen_${new Date().toISOString().slice(0, 10)}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+        };
+        html2pdf()
+          .set(opt)
+          .from(container)
+          .save()
+          .then(() => {
+            showToast("File PDF Rekap Asesmen berhasil diunduh!", "success");
+          })
+          .catch((err) => {
+            console.error("html2pdf error, fallback to print view:", err);
+            fallbackPrintView(container);
+          });
+      } else {
+        fallbackPrintView(container);
+      }
+    }
+
+    function fallbackPrintView(contentEl) {
+      const win = window.open("", "_blank");
+      if (!win) {
+        showToast("Izinkan pop-up untuk mencetak / menyimpan PDF.", "warning");
+        return;
+      }
+      win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>PT SOSM Crew Assessment Recap</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+          <style>
+            @page { size: A4 landscape; margin: 8mm; }
+            body { margin: 0; padding: 10px; font-family: 'Inter', -apple-system, sans-serif; background: #fff; }
+          </style>
+        </head>
+        <body>
+          ${contentEl.outerHTML}
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      win.document.close();
+      showToast("Membuka jendela cetak / Simpan sebagai PDF.", "info");
+    }
+
+    // =========================================================================
+    // INDIVIDUAL SCORECARD PDF & EXCEL EXPORT CONTROLLERS
+    // =========================================================================
+    function downloadScorecardPDF() {
+      if (!activeScorecardId) {
+        showToast("Pilih data scorecard terlebih dahulu.", "warning");
+        return;
+      }
+      const rec = candidateRecords.find((r) => r.id === activeScorecardId);
+      if (!rec) return;
+
+      const element = document.getElementById("scorecardModalContent");
+      if (!element) return;
+
+      if (typeof html2pdf !== "undefined") {
+        showToast(`Membuat file PDF Scorecard untuk ${rec.fullName}...`, "info");
+        const cleanName = (rec.fullName || "Candidate").replace(/[^a-zA-Z0-9]/g, "_");
+        const opt = {
+          margin: [6, 6, 6, 6],
+          filename: `PT_SOSM_Scorecard_${cleanName}_${rec.id}.pdf`,
+          image: { type: "jpeg", quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        };
+        html2pdf()
+          .set(opt)
+          .from(element)
+          .save()
+          .then(() => {
+            showToast("File Scorecard PDF berhasil diunduh!", "success");
+          })
+          .catch((err) => {
+            console.error("Scorecard PDF error:", err);
+            window.print();
+          });
+      } else {
+        window.print();
+      }
+    }
+
+    function exportSingleScorecardExcel() {
+      if (!activeScorecardId) return;
+      const rec = candidateRecords.find((r) => r.id === activeScorecardId);
+      if (!rec) return;
+      const m = computeCandidateMetrics(rec);
+
+      if (typeof XLSX !== "undefined") {
+        const data = [
+          ["PT SEVEN OCEAN SHIP MANAGEMENT - EXECUTIVE CREW SCORECARD"],
+          [""],
+          ["1. CANDIDATE PROFILE"],
+          ["Full Name", rec.fullName, "Candidate ID", rec.id],
+          ["Rank Applied", rec.rankApplied, "Department / Category", `${rec.department} - ${rec.rankCategory}`],
+          ["Phone / WA", rec.phone || "-", "Email Address", rec.email || "-"],
+          ["Seaman Book No.", rec.seamanBook || "-", "Passport No.", rec.passport || "-"],
+          ["Vessel Type / GT / KW", `${rec.vesselType} (${rec.gtKw})`, "CoC / CoP Grade", rec.cocGrade],
+          ["Test Date", rec.testDate, "Proctor Name", rec.proctor],
+          [""],
+          ["2. OFFICIAL ASSESSMENT VERDICT"],
+          ["Final Composite Score", `${m.compositeScore.toFixed(2)}%`, "Verdict Status", m.statusShort],
+          ["Detailed Verdict", m.verdictFull],
+          [""],
+          ["3. WEIGHTED MODULE BREAKDOWN"],
+          ["Module Name", "Questions", "Correct", "Raw Accuracy", "Weight", "Weighted Score"],
+          ["1_Character_MCQ (Safety & Integrity)", 15, m.charCorrect, `${m.charRawPct.toFixed(1)}%`, "30%", `${m.charWeighted.toFixed(2)}%`],
+          [`${rec.roleModule} (Technical & Practical)`, 20, m.roleCorrect, `${m.roleRawPct.toFixed(1)}%`, "70%", `${m.roleWeighted.toFixed(2)}%`],
+          ["Total Final Composite", 35, m.charCorrect + m.roleCorrect, "", "100%", `${m.compositeScore.toFixed(2)}%`],
+          [""],
+          ["4. PILLAR BREAKDOWN"],
+          ["Pillar 1: Character, Safety Culture & Maritime Integrity", `${m.charCorrect}/15`, `${m.pillar1Pct}%`],
+          ["Pillar 2: Technical Competency & Vessel Systems", `${m.techCorrect}/10`, `${m.pillar2Pct}%`],
+          ["Pillar 3: Emergency Scenarios & Critical Decision-Making", `${m.pracCorrect}/10`, `${m.pillar3Pct}%`],
+          [""],
+          ["5. SUPERINTENDENT REMARKS"],
+          ["Time Taken", rec.timeTaken || "-"],
+          ["Certificate Suitability", rec.certSuitability || "-"],
+          ["Oral Verification Notes", rec.oralNotes || "-"]
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        ws["!cols"] = [{ wch: 30 }, { wch: 25 }, { wch: 22 }, { wch: 25 }, { wch: 15 }, { wch: 18 }];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Executive Scorecard");
+
+        const cleanName = (rec.fullName || "Candidate").replace(/[^a-zA-Z0-9]/g, "_");
+        XLSX.writeFile(wb, `PT_SOSM_Scorecard_${cleanName}_${rec.id}.xlsx`);
+        showToast("Scorecard Excel (.xlsx) berhasil diunduh!", "success");
+      } else {
+        exportCandidatesCSV();
+      }
     }
 
     // =========================================================================
