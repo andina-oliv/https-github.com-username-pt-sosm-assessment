@@ -3182,7 +3182,15 @@ alter publication supabase_realtime add table public.candidate_records;</code></
         if (error) throw error;
 
         if (data && data.length > 0) {
-          candidateRecords = data.map(supabaseToRecord);
+          const cloudRecords = data.map(supabaseToRecord);
+          // Smart merge: preserve any locally submitted candidate records that have not yet synced
+          const merged = [...cloudRecords];
+          candidateRecords.forEach((localRec) => {
+            if (!merged.some((c) => c.id === localRec.id)) {
+              merged.unshift(localRec);
+            }
+          });
+          candidateRecords = merged;
           saveRecordsToStorage();
           renderDashboard();
           showToast(`Sinkron ${data.length} data kandidat dari Supabase.`, "success");
@@ -4588,13 +4596,23 @@ alter publication supabase_realtime add table public.candidate_records;</code></
 
       candidateRecords.unshift(newRecord);
       saveRecordsToStorage();
+      renderDashboard();
 
       if (supabaseClient) {
+        const fullPayload = recordToSupabase(newRecord);
         supabaseClient
           .from('candidate_records')
-          .insert(recordToSupabase(newRecord))
+          .insert(fullPayload)
           .then(({ error }) => {
-            if (error) console.error("Supabase insert error:", error);
+            if (error) {
+              console.warn("Supabase full insert error (retrying with base schema):", error);
+              const basePayload = { ...fullPayload };
+              delete basePayload.phone;
+              delete basePayload.email;
+              delete basePayload.seaman_book;
+              delete basePayload.passport;
+              supabaseClient.from('candidate_records').insert(basePayload).catch((e) => console.error("Base insert error:", e));
+            }
           });
       }
 
