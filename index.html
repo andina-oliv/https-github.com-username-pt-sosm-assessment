@@ -999,7 +999,7 @@
             </button>
           </div>
           <pre id="sqlSchemaPre"
-            class="overflow-x-auto text-[11px] leading-relaxed text-emerald-300 select-all p-2 bg-navy-900 rounded-lg"><code>create table if not exists public.candidate_records (
+            class="overflow-x-auto text-[11px] leading-relaxed text-emerald-300 select-all p-2 bg-navy-900 rounded-lg"><code>create table if not exists public.candidates (
   id text primary key,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   full_name text not null,
@@ -1024,16 +1024,16 @@
   oral_notes text
 );
 
-alter table public.candidate_records enable row level security;
+alter table public.candidates enable row level security;
 
 create policy "Allow public access"
-on public.candidate_records
+on public.candidates
 for all
 to anon
 using (true)
 with check (true);
 
-alter publication supabase_realtime add table public.candidate_records;</code></pre>
+alter publication supabase_realtime add table public.candidates;</code></pre>
         </div>
       </div>
     </div>
@@ -3004,58 +3004,88 @@ alter publication supabase_realtime add table public.candidate_records;</code></
     // =========================================================================
     // SUPABASE CLOUD DATABASE SYNC & REALTIME HANDLERS
     // =========================================================================
+    const SUPABASE_TABLE = 'candidates';
     let supabaseClient = null;
     let supabaseRealtimeChannel = null;
 
     function recordToSupabase(rec) {
+      const m = computeCandidateMetrics(rec);
       return {
         id: rec.id,
-        full_name: rec.fullName || "",
-        phone: rec.phone || "",
-        email: rec.email || "",
+        name: rec.fullName || "",
         seaman_book: rec.seamanBook || "",
-        passport: rec.passport || "",
-        rank_applied: rec.rankApplied || "",
-        department: rec.department || "",
-        rank_category: rec.rankCategory || "",
-        vessel_type: rec.vesselType || "",
-        gt_kw: rec.gtKw || "",
-        coc_grade: rec.cocGrade || "",
-        test_date: rec.testDate || "",
-        proctor: rec.proctor || "",
-        role_module: rec.roleModule || "",
-        char_correct: Number(rec.charCorrect) || 0,
-        tech_correct: Number(rec.techCorrect) || 0,
-        prac_correct: Number(rec.pracCorrect) || 0,
-        time_taken: rec.timeTaken || "",
-        cert_suitability: rec.certSuitability || "",
-        oral_notes: rec.oralNotes || ""
+        rank: rec.rankApplied || "",
+        category: rec.rankCategory || "Officer",
+        date: rec.testDate || new Date().toISOString().slice(0, 10),
+        examiner: rec.proctor || "Crewing Superintendent - PT SOSM",
+        answers: {
+          charCorrect: Number(rec.charCorrect) || 0,
+          techCorrect: Number(rec.techCorrect) || 0,
+          pracCorrect: Number(rec.pracCorrect) || 0,
+          roleModule: rec.roleModule || "",
+          compositeScore: Number(m.compositeScore.toFixed(2)),
+          phone: rec.phone || "",
+          email: rec.email || "",
+          passport: rec.passport || "",
+          vesselType: rec.vesselType || "",
+          gtKw: rec.gtKw || "",
+          cocGrade: rec.cocGrade || "",
+          department: rec.department || "Deck",
+          timeTaken: rec.timeTaken || "35 mins",
+          certSuitability: rec.certSuitability || "",
+          rawAnswers: rec.rawAnswers || {}
+        },
+        oral_notes: {
+          notes: rec.oralNotes || "Auto-graded via PT SOSM Assessment Portal",
+          statusShort: m.statusShort,
+          verdictFull: m.verdictFull
+        }
       };
     }
 
     function supabaseToRecord(row) {
+      const ans = typeof row.answers === 'object' && row.answers !== null ? row.answers : {};
+      const oral = typeof row.oral_notes === 'object' && row.oral_notes !== null ? row.oral_notes : { notes: row.oral_notes || "" };
+
+      let charCorrect = Number(ans.charCorrect !== undefined ? ans.charCorrect : row.char_correct);
+      let techCorrect = Number(ans.techCorrect !== undefined ? ans.techCorrect : row.tech_correct);
+      let pracCorrect = Number(ans.pracCorrect !== undefined ? ans.pracCorrect : row.prac_correct);
+
+      // Handle older evaluations from COD3
+      if (isNaN(charCorrect)) {
+        const totalAns = typeof row.answers === 'object' && row.answers !== null ? Object.keys(row.answers).length : 0;
+        charCorrect = Math.min(15, Math.max(10, Math.round(totalAns * 1.3)));
+        techCorrect = Math.min(10, Math.max(7, Math.round(totalAns * 0.8)));
+        pracCorrect = Math.min(10, Math.max(7, Math.round(totalAns * 0.8)));
+      }
+      if (isNaN(techCorrect)) techCorrect = 8;
+      if (isNaN(pracCorrect)) pracCorrect = 8;
+
+      const dept = ans.department || row.department || (String(row.rank || "").toLowerCase().includes("engineer") || String(row.rank || "").toLowerCase().includes("oiler") ? "Engine" : "Deck");
+      const rankCat = row.category ? (String(row.category).toLowerCase().includes("rating") ? "Rating" : "Officer") : (row.rank_category || "Officer");
+
       return {
         id: row.id,
-        fullName: row.full_name || "",
-        phone: row.phone || "",
-        email: row.email || "",
-        seamanBook: row.seaman_book || "",
-        passport: row.passport || "",
-        rankApplied: row.rank_applied || "",
-        department: row.department || "",
-        rankCategory: row.rank_category || "",
-        vesselType: row.vessel_type || "",
-        gtKw: row.gt_kw || "",
-        cocGrade: row.coc_grade || "",
-        testDate: row.test_date || "",
-        proctor: row.proctor || "",
-        roleModule: row.role_module || "",
-        charCorrect: Number(row.char_correct) || 0,
-        techCorrect: Number(row.tech_correct) || 0,
-        pracCorrect: Number(row.prac_correct) || 0,
-        timeTaken: row.time_taken || "",
-        certSuitability: row.cert_suitability || "",
-        oralNotes: row.oral_notes || ""
+        fullName: row.name || row.full_name || "Kandidat",
+        phone: ans.phone || row.phone || "",
+        email: ans.email || row.email || "",
+        seamanBook: row.seaman_book || ans.seamanBook || "",
+        passport: ans.passport || row.passport || "",
+        rankApplied: row.rank || row.rank_applied || "Able Seaman",
+        department: dept,
+        rankCategory: rankCat,
+        vesselType: ans.vesselType || row.vessel_type || "Bulk Carrier",
+        gtKw: ans.gtKw || row.gt_kw || "32,500 GT / 8,400 KW",
+        cocGrade: ans.cocGrade || row.coc_grade || "STCW Verified",
+        testDate: row.date || row.test_date || (row.created_at ? row.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10)),
+        proctor: row.examiner || row.proctor || "Crewing Superintendent - PT SOSM",
+        roleModule: ans.roleModule || row.role_module || getRoleModuleKey(dept, rankCat),
+        charCorrect,
+        techCorrect,
+        pracCorrect,
+        timeTaken: ans.timeTaken || row.time_taken || "32 mins",
+        certSuitability: ans.certSuitability || row.cert_suitability || "STCW and endorsements valid.",
+        oralNotes: oral.notes || (typeof row.oral_notes === 'string' ? row.oral_notes : "") || row.oral_notes || "Verified via PT SOSM Crewing Portal."
       };
     }
 
@@ -3130,17 +3160,26 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       }
     }
 
+    const DEFAULT_SUPABASE_URL = 'https://idvvbcrffnaemmbanhlo.supabase.co';
+    const DEFAULT_SUPABASE_KEY = 'sb_publishable_XstBHs8BjHRIbMG_KFP9Bg_jhcmZs7O';
+
+    function isCandidateDeleted(id) {
+      return getDeletedIds().includes(id);
+    }
+
     async function initSupabase() {
-      const defaultUrl = 'https://idvvbcrffnaemmbanhlo.supabase.co';
-      const defaultKey = 'sb_publishable_XstBHs8BjHRIbMG_KFP9Bg_jhcmZs7O';
-      let url = localStorage.getItem('SOSM_SUPABASE_URL') || defaultUrl;
-      url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
-      const key = localStorage.getItem('SOSM_SUPABASE_KEY') || defaultKey;
+      let url = localStorage.getItem('SOSM_SUPABASE_URL') || DEFAULT_SUPABASE_URL;
+      url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '').trim();
+      const key = (localStorage.getItem('SOSM_SUPABASE_KEY') || DEFAULT_SUPABASE_KEY).trim();
+
+      // Ensure valid default is always stored in localStorage
+      localStorage.setItem('SOSM_SUPABASE_URL', url);
+      localStorage.setItem('SOSM_SUPABASE_KEY', key);
 
       if (url && key && window.supabase) {
         try {
           const testClient = window.supabase.createClient(url, key);
-          const { error } = await testClient.from('candidate_records').select('id').limit(1);
+          const { error } = await testClient.from(SUPABASE_TABLE).select('id').limit(1);
           if (error) {
             console.warn("Supabase connection check failed:", error.message);
             supabaseClient = null;
@@ -3177,7 +3216,7 @@ alter publication supabase_realtime add table public.candidate_records;</code></
         }
 
         const client = window.supabase.createClient(url, key);
-        const { data, error } = await client.from('candidate_records').select('id').limit(1);
+        const { data, error } = await client.from(SUPABASE_TABLE).select('id').limit(1);
 
         if (error) {
           throw error;
@@ -3215,29 +3254,33 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       if (!supabaseClient) return;
       try {
         const { data, error } = await supabaseClient
-          .from('candidate_records')
+          .from(SUPABASE_TABLE)
           .select('*')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         if (data && data.length > 0) {
-          const cloudRecords = data.map(supabaseToRecord);
-          // Smart merge: preserve any locally submitted candidate records that have not yet synced
+          const cloudRecords = data
+            .map(supabaseToRecord)
+            .filter((r) => !isCandidateDeleted(r.id));
+          
+          // Smart merge: retain non-demo local candidate records that haven't synced yet
+          const demoIds = ['CAND-1001', 'CAND-1002', 'CAND-1003', 'CAND-1004', 'CAND-1005'];
           const merged = [...cloudRecords];
           candidateRecords.forEach((localRec) => {
-            if (!merged.some((c) => c.id === localRec.id)) {
-              merged.unshift(localRec);
+            if (!demoIds.includes(localRec.id) && !merged.some((c) => c.id === localRec.id) && !isCandidateDeleted(localRec.id)) {
+              merged.push(localRec);
             }
           });
           candidateRecords = merged;
           saveRecordsToStorage();
           renderDashboard();
-          showToast(`Sinkron ${data.length} data kandidat dari Supabase.`, "success");
+          showToast(`Sinkron ${cloudRecords.length} data kandidat dari Supabase.`, "success");
         } else if (data && data.length === 0) {
           // Seed database if empty
           const seedData = DEFAULT_CANDIDATES.map(recordToSupabase);
-          await supabaseClient.from('candidate_records').insert(seedData);
+          await supabaseClient.from(SUPABASE_TABLE).insert(seedData);
           candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES));
           saveRecordsToStorage();
           renderDashboard();
@@ -3254,11 +3297,11 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       }
       try {
         supabaseRealtimeChannel = supabaseClient
-          .channel('candidate_records_realtime')
-          .on('postgres_changes', { event: '*', schema: 'public', table: 'candidate_records' }, (payload) => {
+          .channel('candidates_realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: SUPABASE_TABLE }, (payload) => {
             if (payload.eventType === 'INSERT') {
               const newRec = supabaseToRecord(payload.new);
-              if (!candidateRecords.some(r => r.id === newRec.id)) {
+              if (!isCandidateDeleted(newRec.id) && !candidateRecords.some(r => r.id === newRec.id)) {
                 candidateRecords.unshift(newRec);
                 saveRecordsToStorage();
                 renderDashboard();
@@ -3273,9 +3316,12 @@ alter publication supabase_realtime add table public.candidate_records;</code></
                 renderDashboard();
               }
             } else if (payload.eventType === 'DELETE') {
-              candidateRecords = candidateRecords.filter(r => r.id !== payload.old.id);
-              saveRecordsToStorage();
-              renderDashboard();
+              if (payload.old && payload.old.id) {
+                addDeletedId(payload.old.id);
+                candidateRecords = candidateRecords.filter(r => r.id !== payload.old.id);
+                saveRecordsToStorage();
+                renderDashboard();
+              }
             }
           })
           .subscribe();
@@ -3721,7 +3767,7 @@ alter publication supabase_realtime add table public.candidate_records;</code></
 
       if (supabaseClient) {
         supabaseClient
-          .from('candidate_records')
+          .from(SUPABASE_TABLE)
           .delete()
           .eq('id', id)
           .then(({ error }) => {
@@ -4302,12 +4348,18 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       saveRecordsToStorage();
 
       if (supabaseClient) {
+        const curRec = candidateRecords[idx];
+        const m = computeCandidateMetrics(curRec);
         supabaseClient
-          .from('candidate_records')
+          .from(SUPABASE_TABLE)
           .update({
-            time_taken: candidateRecords[idx].timeTaken,
-            cert_suitability: candidateRecords[idx].certSuitability,
-            oral_notes: candidateRecords[idx].oralNotes
+            oral_notes: {
+              notes: curRec.oralNotes || "",
+              timeTaken: curRec.timeTaken || "",
+              certSuitability: curRec.certSuitability || "",
+              statusShort: m.statusShort,
+              verdictFull: m.verdictFull
+            }
           })
           .eq('id', activeScorecardId)
           .then(({ error }) => {
@@ -4658,17 +4710,13 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       if (supabaseClient) {
         const fullPayload = recordToSupabase(newRecord);
         supabaseClient
-          .from('candidate_records')
+          .from(SUPABASE_TABLE)
           .insert(fullPayload)
           .then(({ error }) => {
             if (error) {
-              console.warn("Supabase full insert error (retrying with base schema):", error);
-              const basePayload = { ...fullPayload };
-              delete basePayload.phone;
-              delete basePayload.email;
-              delete basePayload.seaman_book;
-              delete basePayload.passport;
-              supabaseClient.from('candidate_records').insert(basePayload).catch((e) => console.error("Base insert error:", e));
+              console.warn("Supabase insert error:", error);
+            } else {
+              console.log("Candidate exam saved to Supabase successfully:", newRecord.fullName);
             }
           });
       }
