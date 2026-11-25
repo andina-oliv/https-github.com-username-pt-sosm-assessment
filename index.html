@@ -148,7 +148,15 @@
             <span id="supabaseStatusText">Supabase Sync</span>
           </button>
 
-          <button onclick="switchTab('exam')"
+          <!-- Crewing Access Protection Button -->
+          <button onclick="toggleCrewingAuthModal()" id="crewingLockBtn"
+            class="px-3 py-2 rounded-lg bg-navy-800 hover:bg-navy-700 border border-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 shadow-sm"
+            title="Akses Khusus Crewing &amp; Superintendent">
+            <span id="crewingLockIcon">🔒</span>
+            <span id="crewingLockText">Crewing Login</span>
+          </button>
+
+          <button onclick="attemptSwitchTab('exam')"
             class="px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
@@ -160,27 +168,28 @@
 
       <!-- 3 MAIN NAVIGATION TABS -->
       <nav class="flex space-x-1 overflow-x-auto pt-1" aria-label="Main Tabs">
-        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')"
+        <button id="tab-btn-exam" onclick="attemptSwitchTab('exam')"
           class="tab-active px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
-          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-            </path>
-          </svg>
-          <span>1. Executive Crewing Dashboard &amp; Log</span>
-        </button>
-
-        <button id="tab-btn-exam" onclick="switchTab('exam')"
-          class="tab-inactive px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
           <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
             </path>
           </svg>
-          <span>2. Live Candidate Exam Portal (35 Soal)</span>
+          <span>1. Live Candidate Exam Portal (35 Soal)</span>
         </button>
 
-        <button id="tab-btn-bank" onclick="switchTab('bank')"
+        <button id="tab-btn-dashboard" onclick="attemptSwitchTab('dashboard')"
+          class="tab-inactive px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+            </path>
+          </svg>
+          <span>2. Executive Crewing Dashboard &amp; Log</span>
+          <span id="tab-lock-dashboard" class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">🔒</span>
+        </button>
+
+        <button id="tab-btn-bank" onclick="attemptSwitchTab('bank')"
           class="tab-inactive px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
           <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -188,6 +197,7 @@
             </path>
           </svg>
           <span>3. Question Bank &amp; Answer Key (95 Soal)</span>
+          <span id="tab-lock-bank" class="ml-1 text-[11px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">🔒</span>
         </button>
       </nav>
     </div>
@@ -203,7 +213,7 @@
     <!-- ===================================================================== -->
     <!-- TAB 1: EXECUTIVE CREWING DASHBOARD & CANDIDATE LOG                    -->
     <!-- ===================================================================== -->
-    <section id="view-dashboard" class="space-y-6">
+    <section id="view-dashboard" class="hidden space-y-6">
       <!-- Page Title & Export Bar -->
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -225,6 +235,16 @@
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
             <span>Export CSV / Excel</span>
+          </button>
+          <button onclick="openChangePinModal()"
+            class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-300 transition flex items-center gap-1.5"
+            title="Ubah PIN Akses Crewing">
+            <span>🔑 Ganti PIN</span>
+          </button>
+          <button onclick="toggleCrewingAuthModal()"
+            class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200 transition flex items-center gap-1.5"
+            title="Kunci Dashboard saat ditinggalkan">
+            <span>🔒 Kunci Dashboard</span>
           </button>
           <button onclick="resetDemoData()"
             class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-300 transition">
@@ -434,7 +454,7 @@
     <!-- ===================================================================== -->
     <!-- TAB 2: LIVE CANDIDATE EXAM PORTAL (35 SOAL)                           -->
     <!-- ===================================================================== -->
-    <section id="view-exam" class="hidden space-y-6">
+    <section id="view-exam" class="space-y-6">
       <!-- STEP 1: CANDIDATE CONFIGURATION FORM -->
       <div id="examSetupContainer" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div
@@ -944,6 +964,147 @@ with check (true);
 alter publication supabase_realtime add table public.candidate_records;</code></pre>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CREWING AUTHENTICATION MODAL (PIN / PASSWORD PROTECTION)              -->
+  <!-- ===================================================================== -->
+  <div id="crewingAuthModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm overflow-y-auto p-4 flex items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6 transform transition-all">
+      <!-- Modal Header -->
+      <div class="bg-navy-900 text-white px-6 py-4 flex items-center justify-between border-b-4 border-amber-500">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center justify-center font-bold text-lg">
+            🔒
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-widest text-amber-400 font-bold">Crewing Superintendent Only</div>
+            <h3 class="text-base font-extrabold tracking-tight">Akses Khusus Tim Crewing</h3>
+          </div>
+        </div>
+        <button onclick="closeCrewingAuthModal()" class="p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form onsubmit="handleCrewingLogin(event)" class="p-6 space-y-4">
+        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2.5">
+          <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div class="leading-relaxed">
+            Data rekapitulasi nilai, scorecard, dan kunci jawaban dilindungi. Silakan masukkan PIN / Kata Sandi Crewing untuk membuka akses dashboard.
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+            PIN / Kata Sandi Crewing
+          </label>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="crewingPinInput" 
+              placeholder="Masukkan PIN Crewing..." 
+              autocomplete="current-password"
+              class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono tracking-widest bg-slate-50 focus:bg-white transition"
+              required
+            />
+            <button type="button" onclick="togglePinVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs font-medium">
+              Lihat
+            </button>
+          </div>
+          <p id="crewingPinError" class="text-xs text-rose-600 font-semibold mt-1 hidden"></p>
+          <p class="text-[11px] text-slate-400 mt-1">Default PIN bawaan: <code class="bg-slate-100 px-1.5 py-0.5 rounded text-navy-800 font-bold">SOSM2026</code></p>
+        </div>
+
+        <div class="pt-2 flex items-center justify-between gap-2 border-t border-slate-200">
+          <button type="button" onclick="closeCrewingAuthModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+            Batal
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md transition flex items-center gap-1.5">
+            <span>Buka Kunci Akses</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CANDIDATE EXAM SUBMISSION SUCCESS MODAL (CONFIDENTIAL RESULT)         -->
+  <!-- ===================================================================== -->
+  <div id="candidateSuccessModal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md overflow-y-auto p-4 flex items-center justify-center">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-6 text-center p-6 sm:p-8 transform transition-all">
+      <!-- Success Icon -->
+      <div class="w-20 h-20 mx-auto rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-5 shadow-inner">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+
+      <div class="inline-block px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold uppercase tracking-wider mb-2">
+        PT Seven Ocean Ship Management
+      </div>
+      
+      <h3 class="text-xl sm:text-2xl font-black text-navy-950 tracking-tight">
+        Tes Berhasil Dikirimkan!
+      </h3>
+      
+      <p class="text-xs sm:text-sm text-slate-600 mt-2">
+        Terima kasih, <strong id="successCandidateName" class="text-navy-900">-</strong>. Lembar jawaban 35 soal ujian kompetensi maritime Anda telah tersimpan dengan aman di database crewing PT SOSM.
+      </p>
+
+      <div class="my-6 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left text-xs space-y-2.5 text-slate-700">
+        <div class="flex items-start gap-2.5">
+          <span class="text-amber-500 font-bold text-sm leading-none mt-0.5">ℹ️</span>
+          <p><strong class="text-navy-900">Kerahasiaan Penilaian:</strong> Sesuai SOP Crewing PT SOSM, skor dan lembar evaluasi teknis bersifat rahasia untuk keperluan evaluasi internal Superintendent.</p>
+        </div>
+        <div class="flex items-start gap-2.5">
+          <span class="text-emerald-500 font-bold text-sm leading-none mt-0.5">📞</span>
+          <p><strong class="text-navy-900">Tahap Selanjutnya:</strong> Kandidat yang memenuhi kualifikasi passing benchmark akan dihubungi langsung oleh Tim Crewing untuk verifikasi dokumen asli dan wawancara teknis/Owner.</p>
+        </div>
+      </div>
+
+      <button 
+        type="button" 
+        onclick="closeCandidateSuccessModal()" 
+        class="w-full py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-bold text-sm shadow-lg transition flex items-center justify-center gap-2"
+      >
+        <span>Selesai &amp; Kembali ke Halaman Pendaftaran</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- CHANGE CREWING PIN MODAL                                              -->
+  <!-- ===================================================================== -->
+  <div id="changePinModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm overflow-y-auto p-4 flex items-center justify-center">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
+      <div class="bg-navy-900 text-white px-5 py-3.5 flex items-center justify-between border-b-4 border-amber-500">
+        <h4 class="text-sm font-bold flex items-center gap-2">
+          <span>🔑</span>
+          <span>Ganti PIN Akses Crewing</span>
+        </h4>
+        <button onclick="closeChangePinModal()" class="text-slate-300 hover:text-white text-lg">&times;</button>
+      </div>
+      <form onsubmit="handleSaveNewPin(event)" class="p-5 space-y-3.5 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">PIN / Password Baru (Minimal 4 karakter):</label>
+          <input type="text" id="newCrewingPinInput" required class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-amber-500 font-mono text-sm" placeholder="Contoh: SOSM#2026" />
+          <p class="text-[11px] text-slate-400 mt-1">Bisa kombinasi angka atau huruf.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+          <button type="button" onclick="closeChangePinModal()" class="px-3.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 font-semibold">Batal</button>
+          <button type="submit" class="px-4 py-1.5 rounded-lg bg-navy-900 text-white font-bold">Simpan PIN Baru</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -2718,6 +2879,11 @@ alter publication supabase_realtime add table public.candidate_records;</code></
     }
 
     function openSupabaseModal() {
+      if (!isCrewingAuth) {
+        targetTabAfterAuth = "dashboard";
+        openCrewingAuthModal();
+        return;
+      }
       const defaultUrl = 'https://idvvbcrffnaemmbanhlo.supabase.co';
       const defaultKey = 'sb_publishable_XstBHs8BjHRIbMG_KFP9Bg_jhcmZs7O';
       const url = localStorage.getItem('SOSM_SUPABASE_URL') || defaultUrl;
@@ -2921,6 +3087,145 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       } catch (e) {
         console.warn("Realtime error:", e);
       }
+    }
+
+    // =========================================================================
+    // CREWING ACCESS PIN & SECURITY CONTROLLER
+    // =========================================================================
+    let isCrewingAuth = sessionStorage.getItem("SOSM_CREWING_AUTH") === "true";
+    let targetTabAfterAuth = "dashboard";
+
+    function updateCrewingUI() {
+      const lockBtn = document.getElementById("crewingLockBtn");
+      const lockIcon = document.getElementById("crewingLockIcon");
+      const lockText = document.getElementById("crewingLockText");
+      const tabLockDash = document.getElementById("tab-lock-dashboard");
+      const tabLockBank = document.getElementById("tab-lock-bank");
+
+      if (isCrewingAuth) {
+        if (lockIcon) lockIcon.textContent = "🔓";
+        if (lockText) lockText.textContent = "Crewing: Active";
+        if (lockBtn) {
+          lockBtn.className = "px-3 py-2 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/50 text-xs font-semibold text-emerald-300 transition flex items-center gap-1.5 shadow-sm";
+          lockBtn.title = "Klik untuk mengunci kembali / Logout";
+        }
+        if (tabLockDash) tabLockDash.classList.add("hidden");
+        if (tabLockBank) tabLockBank.classList.add("hidden");
+      } else {
+        if (lockIcon) lockIcon.textContent = "🔒";
+        if (lockText) lockText.textContent = "Crewing Login";
+        if (lockBtn) {
+          lockBtn.className = "px-3 py-2 rounded-lg bg-navy-800 hover:bg-navy-700 border border-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 shadow-sm";
+          lockBtn.title = "Akses Khusus Crewing & Superintendent";
+        }
+        if (tabLockDash) tabLockDash.classList.remove("hidden");
+        if (tabLockBank) tabLockBank.classList.remove("hidden");
+      }
+    }
+
+    function toggleCrewingAuthModal() {
+      if (isCrewingAuth) {
+        if (confirm("Kunci kembali akses Tim Crewing (Logout)?")) {
+          isCrewingAuth = false;
+          sessionStorage.removeItem("SOSM_CREWING_AUTH");
+          updateCrewingUI();
+          switchTab("exam");
+          showToast("Akses Tim Crewing berhasil dikunci kembali.", "info");
+        }
+      } else {
+        targetTabAfterAuth = "dashboard";
+        openCrewingAuthModal();
+      }
+    }
+
+    function attemptSwitchTab(tabName) {
+      if (tabName === "dashboard" || tabName === "bank") {
+        if (!isCrewingAuth) {
+          targetTabAfterAuth = tabName;
+          openCrewingAuthModal();
+          return;
+        }
+      }
+      switchTab(tabName);
+    }
+
+    function openCrewingAuthModal() {
+      const modal = document.getElementById("crewingAuthModal");
+      const input = document.getElementById("crewingPinInput");
+      const err = document.getElementById("crewingPinError");
+      if (err) err.classList.add("hidden");
+      if (input) input.value = "";
+      modal.classList.remove("hidden");
+      setTimeout(() => { if (input) input.focus(); }, 100);
+    }
+
+    function closeCrewingAuthModal() {
+      document.getElementById("crewingAuthModal").classList.add("hidden");
+    }
+
+    function togglePinVisibility() {
+      const input = document.getElementById("crewingPinInput");
+      if (!input) return;
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    function handleCrewingLogin(e) {
+      e.preventDefault();
+      const input = document.getElementById("crewingPinInput");
+      const err = document.getElementById("crewingPinError");
+      const pin = input ? input.value.trim() : "";
+      const storedPin = localStorage.getItem("SOSM_CREWING_PIN") || "SOSM2026";
+
+      if (pin === storedPin) {
+        isCrewingAuth = true;
+        sessionStorage.setItem("SOSM_CREWING_AUTH", "true");
+        closeCrewingAuthModal();
+        updateCrewingUI();
+        showToast("Akses Tim Crewing berhasil dibuka.", "success");
+        switchTab(targetTabAfterAuth || "dashboard");
+      } else {
+        if (err) {
+          err.textContent = "PIN salah. Akses dashboard ditolak.";
+          err.classList.remove("hidden");
+        }
+        showToast("PIN Crewing salah! Akses ditolak.", "danger");
+      }
+    }
+
+    function openChangePinModal() {
+      const modal = document.getElementById("changePinModal");
+      const input = document.getElementById("newCrewingPinInput");
+      if (input) input.value = "";
+      modal.classList.remove("hidden");
+      setTimeout(() => { if (input) input.focus(); }, 100);
+    }
+
+    function closeChangePinModal() {
+      document.getElementById("changePinModal").classList.add("hidden");
+    }
+
+    function handleSaveNewPin(e) {
+      e.preventDefault();
+      const input = document.getElementById("newCrewingPinInput");
+      const newPin = input ? input.value.trim() : "";
+      if (newPin.length < 4) {
+        showToast("PIN minimal harus 4 karakter.", "warning");
+        return;
+      }
+      localStorage.setItem("SOSM_CREWING_PIN", newPin);
+      closeChangePinModal();
+      showToast("PIN Crewing berhasil diperbarui!", "success");
+    }
+
+    function openCandidateSuccessModal(candidateName) {
+      const nameEl = document.getElementById("successCandidateName");
+      if (nameEl) nameEl.textContent = candidateName || "Kandidat";
+      document.getElementById("candidateSuccessModal").classList.remove("hidden");
+    }
+
+    function closeCandidateSuccessModal() {
+      document.getElementById("candidateSuccessModal").classList.add("hidden");
+      switchTab("exam");
     }
 
     // =========================================================================
@@ -3276,6 +3581,11 @@ alter publication supabase_realtime add table public.candidate_records;</code></
     // 6. EXECUTIVE SCORECARD MODAL
     // =========================================================================
     function openScorecardModal(candidateId) {
+      if (!isCrewingAuth) {
+        targetTabAfterAuth = "dashboard";
+        openCrewingAuthModal();
+        return;
+      }
       const rec = candidateRecords.find((r) => r.id === candidateId);
       if (!rec) return;
 
@@ -3703,10 +4013,9 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       document.getElementById("activeExamContainer").classList.add("hidden");
       document.getElementById("examSetupContainer").classList.remove("hidden");
 
-      // Switch to Dashboard and immediately open Executive Scorecard
-      switchTab("dashboard");
-      openScorecardModal(newId);
-      showToast(`Assessment graded & saved for ${newRecord.fullName}!`, "success");
+      // Kerahasiaan Penilaian: Kandidat TIDAK boleh melihat scorecard atau dashboard!
+      openCandidateSuccessModal(newRecord.fullName);
+      showToast(`Jawaban tes kandidat ${newRecord.fullName} berhasil dikirimkan ke crewing.`, "success");
     }
 
     // =========================================================================
@@ -3826,8 +4135,14 @@ alter publication supabase_realtime add table public.candidate_records;</code></
 
       loadRecordsFromStorage();
       updateAssignedModulePreview();
-      renderDashboard();
-      renderQuestionBank();
+      updateCrewingUI();
+
+      if (isCrewingAuth) {
+        switchTab("dashboard");
+      } else {
+        switchTab("exam");
+      }
+
       initSupabase();
     });
   </script>
