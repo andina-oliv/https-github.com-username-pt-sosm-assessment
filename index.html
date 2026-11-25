@@ -1,0 +1,3836 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Assesment-PT.SOSM</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Supabase JS Client via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              950: '#061224',
+              900: '#0B1F3A',
+              800: '#132D52',
+              700: '#1E3A5F',
+              600: '#2A4E7C',
+            },
+            maritime: {
+              gold: '#D97706',
+              amber: '#F59E0B',
+              light: '#FEF3C7',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Custom scrollbar & print styling for Executive Scorecard */
+    body {
+      background-color: #F8FAFC;
+      color: #0F172A;
+    }
+
+    .tab-active {
+      border-bottom: 3px solid #F59E0B;
+      color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .tab-inactive {
+      border-bottom: 3px solid transparent;
+      color: #CBD5E1;
+    }
+
+    .tab-inactive:hover {
+      color: #FFFFFF;
+      background-color: rgba(255, 255, 255, 0.04);
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+
+      #scorecardModalContent,
+      #scorecardModalContent * {
+        visibility: visible;
+      }
+
+      #scorecardModalContent {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        box-shadow: none !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 16px !important;
+        background: #FFFFFF !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased selection:bg-amber-200 selection:text-navy-900">
+
+  <!-- TOP EXECUTIVE MARITIME HEADER -->
+  <header class="bg-navy-900 text-white shadow-lg border-b border-navy-700 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3.5 gap-3">
+        <!-- Brand Identity -->
+        <div class="flex items-center gap-3.5">
+          <!-- PT SOSM Logo -->
+          <div
+            class="w-12 h-12 rounded-xl bg-white shadow-md border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden relative">
+            <img
+              src="https://images.glints.com/unsafe/glints-dashboard.oss-ap-southeast-1.aliyuncs.com/company-logo/73408111f95bde52ba36773445dd3cfc.jpeg"
+              alt="PT SOSM Logo" class="w-full h-full object-contain rounded-lg"
+              onerror="this.style.display='none'; document.getElementById('sosm-fallback-logo').classList.remove('hidden');" />
+            <div id="sosm-fallback-logo"
+              class="hidden w-full h-full rounded-lg bg-navy-900 flex flex-col items-center justify-center text-white">
+              <span class="text-[13px] font-black tracking-tighter text-amber-400 leading-none">SOSM</span>
+              <span
+                class="text-[7px] font-bold tracking-widest text-slate-300 uppercase leading-none mt-0.5">MARITIME</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span
+                class="text-xs font-bold tracking-wider uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                PT SOSM CREWING OPERATIONS
+              </span>
+              <span class="text-xs text-slate-300 hidden sm:inline">STCW / ISM Assessment Portal</span>
+            </div>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white mt-0.5">
+              PT SEVEN OCEAN SHIP MANAGEMENT
+            </h1>
+            <p class="text-xs text-slate-300">
+              Crew Recruitment Multiple-Choice Assessment Test &amp; Auto-Grader Dashboard
+            </p>
+          </div>
+        </div>
+
+        <!-- Quick Header Status & Actions -->
+        <div class="flex items-center gap-2.5 self-start md:self-center flex-wrap">
+          <div class="hidden lg:flex flex-col text-right mr-2">
+            <span class="text-[11px] uppercase tracking-wider text-amber-400 font-semibold">Passing Benchmark</span>
+            <span class="text-xs text-slate-200 font-medium">≥ 70% Competent | ≥ 80% Excellent</span>
+          </div>
+
+          <!-- Supabase Cloud Sync Button -->
+          <button onclick="openSupabaseModal()" id="supabaseStatusBtn"
+            class="px-3 py-2 rounded-lg bg-navy-800 hover:bg-navy-700 border border-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-2 shadow-sm"
+            title="Konfigurasi Supabase Cloud Database">
+            <span id="supabaseIndicator" class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+            <span id="supabaseStatusText">Supabase Sync</span>
+          </button>
+
+          <button onclick="switchTab('exam')"
+            class="px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-semibold shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>New Candidate Test</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3 MAIN NAVIGATION TABS -->
+      <nav class="flex space-x-1 overflow-x-auto pt-1" aria-label="Main Tabs">
+        <button id="tab-btn-dashboard" onclick="switchTab('dashboard')"
+          class="tab-active px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+            </path>
+          </svg>
+          <span>1. Executive Crewing Dashboard &amp; Log</span>
+        </button>
+
+        <button id="tab-btn-exam" onclick="switchTab('exam')"
+          class="tab-inactive px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+            </path>
+          </svg>
+          <span>2. Live Candidate Exam Portal (35 Soal)</span>
+        </button>
+
+        <button id="tab-btn-bank" onclick="switchTab('bank')"
+          class="tab-inactive px-4 py-3 text-xs sm:text-sm font-semibold rounded-t-lg whitespace-nowrap transition flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+            </path>
+          </svg>
+          <span>3. Question Bank &amp; Answer Key (95 Soal)</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- TOAST / NOTIFICATION BANNER (Replaces alert/confirm) -->
+  <div id="toastContainer"
+    class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- MAIN CONTENT WRAPPER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: EXECUTIVE CREWING DASHBOARD & CANDIDATE LOG                    -->
+    <!-- ===================================================================== -->
+    <section id="view-dashboard" class="space-y-6">
+      <!-- Page Title & Export Bar -->
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-navy-900">
+            Executive Crewing Assessment Dashboard <span class="text-slate-400 font-normal">| Rekap &amp; Monitoring
+              Kandidat</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600 mt-0.5">
+            Weighted Evaluation Formula: <strong class="text-navy-800">30% Character &amp; Safety Culture (15
+              Qs)</strong> + <strong class="text-navy-800">70% Role Technical &amp; Practical Skill (20 Qs)</strong>
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="exportCandidatesCSV()"
+            class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Export CSV / Excel</span>
+          </button>
+          <button onclick="resetDemoData()"
+            class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-300 transition">
+            Reset Sample Data
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI SUMMARY CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Tested</span>
+            <span class="p-2 rounded-lg bg-navy-900/10 text-navy-800">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z">
+                </path>
+              </svg>
+            </span>
+          </div>
+          <div id="kpiTotalCandidates" class="text-2xl font-extrabold text-navy-900 mt-2">0</div>
+          <p class="text-xs text-slate-500 mt-1">Kandidat teruji di sistem</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Overall Pass Rate</span>
+            <span class="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                </path>
+              </svg>
+            </span>
+          </div>
+          <div id="kpiPassRate" class="text-2xl font-extrabold text-emerald-600 mt-2">0%</div>
+          <p class="text-xs text-slate-500 mt-1">Skor Komposit ≥ 70.0%</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Avg Composite</span>
+            <span class="p-2 rounded-lg bg-amber-100 text-amber-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z">
+                </path>
+              </svg>
+            </span>
+          </div>
+          <div id="kpiAvgScore" class="text-2xl font-extrabold text-navy-900 mt-2">0.0%</div>
+          <p class="text-xs text-slate-500 mt-1">Rata-rata tertimbang (30/70)</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Top Category</span>
+            <span class="p-2 rounded-lg bg-blue-100 text-blue-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
+                </path>
+              </svg>
+            </span>
+          </div>
+          <div id="kpiTopDept" class="text-lg font-extrabold text-navy-900 mt-2 truncate">-</div>
+          <p id="kpiTopDeptSub" class="text-xs text-slate-500 mt-1">Tertinggi berdasarkan rata-rata</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Oral Verification</span>
+            <span class="p-2 rounded-lg bg-amber-100 text-amber-800">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                </path>
+              </svg>
+            </span>
+          </div>
+          <div id="kpiOralPending" class="text-2xl font-extrabold text-amber-600 mt-2">0</div>
+          <p class="text-xs text-slate-500 mt-1">Pass Competent (70–79.9%)</p>
+        </div>
+      </div>
+
+      <!-- ANALYTICAL CHARTS ROW -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Bar Chart: 3 Competency Pillars by Dept/Category -->
+        <div class="lg:col-span-2 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <div>
+              <h3 class="text-base font-bold text-navy-900">Competency Pillar Accuracy by Role Category (%)</h3>
+              <p class="text-xs text-slate-500">Perbandingan akurasi 3 Pilar Kompetensi: Character (15 Qs), Technical
+                Knowledge (10 Qs), Practical &amp; Emergency (10 Qs)</p>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="pillarBarChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Doughnut Chart: Assessment Outcomes -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col">
+          <div class="mb-4">
+            <h3 class="text-base font-bold text-navy-900">Assessment Verdict Distribution</h3>
+            <p class="text-xs text-slate-500">Distribusi kelulusan berdasarkan ambang STCW / PT SOSM</p>
+          </div>
+          <div class="relative h-60 w-full flex items-center justify-center">
+            <canvas id="outcomeDoughnutChart"></canvas>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100 grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+              <div class="font-bold text-emerald-700" id="legendExcellent">0</div>
+              <div class="text-[11px] text-emerald-600">Excellent ≥80%</div>
+            </div>
+            <div class="p-2 rounded-lg bg-amber-50 border border-amber-200">
+              <div class="font-bold text-amber-700" id="legendCompetent">0</div>
+              <div class="text-[11px] text-amber-600">Competent 70-79%</div>
+            </div>
+            <div class="p-2 rounded-lg bg-rose-50 border border-rose-200">
+              <div class="font-bold text-rose-700" id="legendFail">0</div>
+              <div class="text-[11px] text-rose-600">Fail &lt;70%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CANDIDATE ASSESSMENT LOG TABLE -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <!-- Filter & Search Controls -->
+        <div
+          class="p-5 border-b border-slate-200 bg-slate-50/70 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-navy-900">Candidate Assessment Log &amp; Auto-Grader Records</h3>
+            <p class="text-xs text-slate-500">Klik <span class="font-semibold text-navy-700">View Executive
+                Scorecard</span> untuk melihat rincian pilar kompetensi &amp; mencetak laporan resmi.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-2.5">
+            <!-- Search Input -->
+            <div class="relative">
+              <input type="text" id="filterSearch" oninput="renderDashboard()"
+                placeholder="Cari nama, rank, kapal, CoC..."
+                class="w-full lg:w-56 pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor"
+                stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+                </path>
+              </svg>
+            </div>
+
+            <!-- Filter Dept -->
+            <select id="filterDept" onchange="renderDashboard()"
+              class="px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="ALL">Dept: All (Deck &amp; Engine)</option>
+              <option value="Deck">Dept: Deck</option>
+              <option value="Engine">Dept: Engine</option>
+            </select>
+
+            <!-- Filter Rank Category -->
+            <select id="filterCategory" onchange="renderDashboard()"
+              class="px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="ALL">Category: All (Officer &amp; Rating)</option>
+              <option value="Officer">Category: Officer</option>
+              <option value="Rating">Category: Rating</option>
+            </select>
+
+            <!-- Filter Status -->
+            <select id="filterStatus" onchange="renderDashboard()"
+              class="px-3 py-2 text-xs rounded-xl border border-slate-300 bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="ALL">Status: All Verdicts</option>
+              <option value="PASS - EXCELLENT">PASS - EXCELLENT (≥80%)</option>
+              <option value="PASS - COMPETENT">PASS - COMPETENT (70-79%)</option>
+              <option value="FAIL">FAIL (&lt;70%)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Responsive Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-navy-900 text-white text-[11px] uppercase tracking-wider">
+                <th class="py-3.5 px-4 font-semibold">Candidate Name</th>
+                <th class="py-3.5 px-4 font-semibold">Rank Applied</th>
+                <th class="py-3.5 px-4 font-semibold">Dept / Category</th>
+                <th class="py-3.5 px-4 font-semibold">Vessel Type / GT / KW</th>
+                <th class="py-3.5 px-4 font-semibold">CoC / CoP</th>
+                <th class="py-3.5 px-4 font-semibold">Test Date</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Char (30%)</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Role (70%)</th>
+                <th class="py-3.5 px-4 font-semibold text-center">Composite</th>
+                <th class="py-3.5 px-4 font-semibold">Status Verdict</th>
+                <th class="py-3.5 px-4 font-semibold text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="candidateTableBody" class="divide-y divide-slate-200 text-xs">
+              <!-- Populated dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div id="emptyTableMessage" class="hidden p-8 text-center text-slate-500 text-sm">
+          Tidak ada data kandidat yang sesuai dengan filter pencarian.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: LIVE CANDIDATE EXAM PORTAL (35 SOAL)                           -->
+    <!-- ===================================================================== -->
+    <section id="view-exam" class="hidden space-y-6">
+      <!-- STEP 1: CANDIDATE CONFIGURATION FORM -->
+      <div id="examSetupContainer" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div
+          class="bg-navy-900 text-white p-5 sm:p-6 border-b border-navy-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Step 1 of 2 — Candidate
+              Registration</span>
+            <h2 class="text-lg sm:text-xl font-bold mt-0.5">Live Candidate Assessment Setup | Formulir Ujian Kandidat
+            </h2>
+            <p class="text-xs text-slate-300 mt-1">Sistem akan otomatis memasangkan 15 Soal Character + 20 Soal Spesifik
+              Jabatan (Total 35 Soal).</p>
+          </div>
+          <div class="px-3.5 py-2 rounded-xl bg-navy-800 border border-navy-600 text-xs">
+            <span class="text-slate-300">Duration Standard:</span>
+            <strong class="text-amber-400 ml-1">45 Minutes (35 MCQs)</strong>
+          </div>
+        </div>
+
+        <form id="candidateSetupForm" onsubmit="startCandidateExam(event)" class="p-5 sm:p-6 space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Full Name -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Full Name / Nama Lengkap <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="candName" required placeholder="e.g. Capt. Hendra Wijaya / Budi Santoso"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- Rank Applied -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Rank Applied / Jabatan Dilamar <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="candRank" required placeholder="e.g. 2nd Officer, 4th Engineer, AB, Oiler"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- Department -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Department / Departemen <span class="text-rose-600">*</span>
+              </label>
+              <select id="candDept" onchange="updateAssignedModulePreview()"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="Deck">Deck Department</option>
+                <option value="Engine">Engine Department</option>
+              </select>
+            </div>
+
+            <!-- Rank Category -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Rank Category / Kategori <span class="text-rose-600">*</span>
+              </label>
+              <select id="candCategory" onchange="updateAssignedModulePreview()"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="Officer">Officer (Perwira)</option>
+                <option value="Rating">Rating (AB / Oiler / Bosun / Fitter)</option>
+              </select>
+            </div>
+
+            <!-- Vessel Type -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Vessel Type / Tipe Kapal <span class="text-rose-600">*</span>
+              </label>
+              <select id="candVesselType"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="Bulk Carrier">Bulk Carrier</option>
+                <option value="Oil / Chemical Tanker">Oil / Chemical Tanker</option>
+                <option value="SPB / SPOB">SPB / SPOB</option>
+                <option value="Tug & Barge">Tug &amp; Barge</option>
+                <option value="Container">Container</option>
+                <option value="General Cargo">General Cargo</option>
+              </select>
+            </div>
+
+            <!-- GT / KW -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Vessel Size (GT / KW) <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="candGtKw" required placeholder="e.g. 32,500 GT / 8,400 KW"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- CoC / CoP Grade -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                CoC / CoP Grade (STCW) <span class="text-rose-600">*</span>
+              </label>
+              <select id="candCoc"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="STCW II/1 (OOW Deck)">STCW II/1 (OOW Deck)</option>
+                <option value="STCW II/2 (Master / Chief Mate)">STCW II/2 (Master / Chief Mate)</option>
+                <option value="STCW II/4 (Navigational Watch Rating)">STCW II/4 (Navigational Watch Rating)</option>
+                <option value="STCW II/5 (Able Seafarer Deck)">STCW II/5 (Able Seafarer Deck)</option>
+                <option value="STCW III/1 (OOW Engine)">STCW III/1 (OOW Engine)</option>
+                <option value="STCW III/2 (Chief / 2nd Engineer)">STCW III/2 (Chief / 2nd Engineer)</option>
+                <option value="STCW III/4 (Engine Room Watch Rating)">STCW III/4 (Engine Room Watch Rating)</option>
+                <option value="STCW III/5 (Able Seafarer Engine)">STCW III/5 (Able Seafarer Engine)</option>
+              </select>
+            </div>
+
+            <!-- Test Date -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Test Date / Tanggal Ujian <span class="text-rose-600">*</span>
+              </label>
+              <input type="date" id="candTestDate" required
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+
+            <!-- Recruiter / Proctor -->
+            <div>
+              <label class="block text-xs font-bold text-navy-900 uppercase tracking-wide mb-1.5">
+                Recruiter / Proctor Name <span class="text-rose-600">*</span>
+              </label>
+              <input type="text" id="candProctor" required value="Crewing Superintendent - PT SOSM"
+                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+          </div>
+
+          <!-- AUTO-ASSIGNED MODULE PREVIEW BOX -->
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5">
+            <div class="text-xs font-bold uppercase tracking-wider text-navy-700 mb-3 flex items-center gap-2">
+              <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                </path>
+              </svg>
+              <span>Assigned Assessment Package (Auto-Configured)</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-start justify-between">
+                <div>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-navy-900 text-white">PART A •
+                    MANDATORY</span>
+                  <h4 class="font-bold text-sm text-navy-900 mt-1.5">1_Character_MCQ</h4>
+                  <p class="text-xs text-slate-500 mt-0.5">Character, Integrity, Stop-Work Authority &amp; Safety
+                    Culture (Q1–Q15)</p>
+                </div>
+                <div class="text-right shrink-0 ml-3">
+                  <div class="text-base font-extrabold text-amber-600">30%</div>
+                  <div class="text-[11px] text-slate-500">15 Questions</div>
+                </div>
+              </div>
+
+              <div
+                class="bg-white p-4 rounded-xl border border-amber-300 ring-1 ring-amber-200 flex items-start justify-between">
+                <div>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-600 text-white">PART B • ROLE
+                    SPECIFIC</span>
+                  <h4 id="assignedRoleModuleTitle" class="font-bold text-sm text-navy-900 mt-1.5">2_Deck_Officer_MCQ
+                  </h4>
+                  <p id="assignedRoleModuleDesc" class="text-xs text-slate-500 mt-0.5">10 Technical Knowledge (Q1–Q10) +
+                    10 Practical &amp; Emergency Scenarios (Q11–Q20)</p>
+                </div>
+                <div class="text-right shrink-0 ml-3">
+                  <div class="text-base font-extrabold text-navy-900">70%</div>
+                  <div class="text-[11px] text-slate-500">20 Questions</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+            <p class="text-xs text-slate-500">
+              Pastikan identitas kandidat dan sertifikat STCW sesuai dokumen asli sebelum memulai ujian.
+            </p>
+            <button type="submit"
+              class="px-6 py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-sm font-bold shadow-md transition flex items-center justify-center gap-2">
+              <span>Start 35-Question Assessment</span>
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STEP 2: ACTIVE INTERACTIVE EXAM INTERFACE -->
+      <div id="activeExamContainer" class="hidden space-y-5">
+        <!-- Sticky Exam Control Header -->
+        <div
+          class="bg-navy-900 text-white rounded-2xl p-4 sm:p-5 shadow-md border border-navy-700 sticky top-[72px] z-20">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="examHeaderBadge"
+                  class="text-[11px] font-bold px-2.5 py-0.5 rounded bg-amber-500 text-navy-950 uppercase">LIVE
+                  EXAM</span>
+                <span id="examHeaderCandidate" class="text-sm font-bold text-white">Candidate Name</span>
+                <span class="text-slate-400">•</span>
+                <span id="examHeaderRank" class="text-xs text-amber-300 font-semibold">Rank</span>
+              </div>
+              <div class="text-xs text-slate-300 mt-1">
+                Modules: <strong class="text-white">1_Character_MCQ (15)</strong> + <strong id="examHeaderModule"
+                  class="text-amber-400">2_Deck_Officer_MCQ (20)</strong>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- Timer Control -->
+              <div class="flex items-center gap-2 bg-navy-800 px-3.5 py-2 rounded-xl border border-navy-600">
+                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+                  </path>
+                </svg>
+                <span id="examTimerDisplay" class="font-mono text-sm font-bold text-white">45:00</span>
+                <button type="button" onclick="toggleExamTimer()" id="btnToggleTimer"
+                  class="text-[11px] px-2 py-0.5 rounded bg-navy-700 hover:bg-navy-600 text-amber-300 font-semibold ml-1">
+                  Pause
+                </button>
+              </div>
+
+              <!-- Proctor Review Toggle -->
+              <label
+                class="flex items-center gap-2 bg-navy-800 px-3.5 py-2 rounded-xl border border-navy-600 cursor-pointer select-none">
+                <input type="checkbox" id="proctorRevealToggle" onchange="renderExamQuestions()"
+                  class="rounded text-amber-500 focus:ring-amber-500" />
+                <span class="text-xs font-semibold text-slate-200">Proctor Key Preview</span>
+              </label>
+
+              <!-- Abort / Back to Setup -->
+              <button type="button" onclick="cancelActiveExam()"
+                class="px-3 py-2 rounded-xl bg-rose-900/60 hover:bg-rose-800 text-rose-200 text-xs font-semibold border border-rose-700/50 transition">
+                Cancel Exam
+              </button>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="mt-4">
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300 font-medium">Completion Progress</span>
+              <span id="examProgressText" class="font-bold text-amber-400">Answered 0 / 35 Questions (0%)</span>
+            </div>
+            <div class="w-full h-2.5 bg-navy-950 rounded-full overflow-hidden">
+              <div id="examProgressBar"
+                class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-300"
+                style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Navigation Pills -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-2.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-navy-900">Quick Question Navigator (1–15
+              Character | 16–35 Role Specific)</span>
+            <div class="flex items-center gap-3 text-[11px] text-slate-500">
+              <span class="flex items-center gap-1"><span
+                  class="w-2.5 h-2.5 rounded-full bg-emerald-600 inline-block"></span> Answered</span>
+              <span class="flex items-center gap-1"><span
+                  class="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-400 inline-block"></span>
+                Unanswered</span>
+            </div>
+          </div>
+          <div id="questionNavPills" class="flex flex-wrap gap-1.5">
+            <!-- Pills generated dynamically -->
+          </div>
+        </div>
+
+        <!-- Questions List Container -->
+        <div id="examQuestionsList" class="space-y-4">
+          <!-- Questions rendered dynamically -->
+        </div>
+
+        <!-- Submit Exam Footer Card -->
+        <div
+          class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h4 class="text-base font-bold text-navy-900">Ready to Submit Assessment?</h4>
+            <p id="submitSummaryHint" class="text-xs text-slate-600 mt-0.5">Pastikan seluruh 35 soal telah terjawab
+              sebelum menekan tombol Submit &amp; Auto-Grade.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="button" onclick="autoFillDemoAnswers()"
+              class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-300 transition">
+              Proctor Quick-Fill (Test Demo)
+            </button>
+            <button type="button" onclick="submitCandidateExam()"
+              class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-md transition flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
+                </path>
+              </svg>
+              <span>Submit &amp; Auto-Grade Exam</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: QUESTION BANK & ANSWER KEY MASTER (95 SOAL)                    -->
+    <!-- ===================================================================== -->
+    <section id="view-bank" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Official PT SOSM Master
+              Repository</span>
+            <h2 class="text-lg sm:text-xl font-bold text-navy-900">Question Bank &amp; Answer Key Master (95 Official
+              Questions)</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Seluruh bank soal resmi PT Seven Ocean Ship Management mencakup 5
+              modul STCW &amp; Budaya Keselamatan.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button id="btnToggleBankKeys" onclick="toggleBankAnswerKeys()"
+              class="px-4 py-2 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                </path>
+              </svg>
+              <span id="btnToggleBankKeysLabel">Hide Answer Keys</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Module Selector Pills & Search -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          <div class="flex flex-wrap gap-1.5" id="bankModuleTabs">
+            <button onclick="selectBankModule('ALL')" data-mod="ALL"
+              class="bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 text-white">All Modules
+              (95)</button>
+            <button onclick="selectBankModule('1_Character_MCQ')" data-mod="1_Character_MCQ"
+              class="bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">1_Character_MCQ
+              (15)</button>
+            <button onclick="selectBankModule('2_Deck_Officer_MCQ')" data-mod="2_Deck_Officer_MCQ"
+              class="bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">2_Deck_Officer
+              (20)</button>
+            <button onclick="selectBankModule('3_Deck_Rating_MCQ')" data-mod="3_Deck_Rating_MCQ"
+              class="bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">3_Deck_Rating
+              (20)</button>
+            <button onclick="selectBankModule('4_Engine_Officer_MCQ')" data-mod="4_Engine_Officer_MCQ"
+              class="bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">4_Engine_Officer
+              (20)</button>
+            <button onclick="selectBankModule('5_Engine_Rating_MCQ')" data-mod="5_Engine_Rating_MCQ"
+              class="bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">5_Engine_Rating
+              (20)</button>
+          </div>
+
+          <div class="relative w-full md:w-72">
+            <input type="text" id="bankSearchInput" oninput="renderQuestionBank()"
+              placeholder="Search keyword (COLREG, MARPOL, LOTO...)"
+              class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor"
+              stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z">
+              </path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Bank Cards Output -->
+      <div id="questionBankContainer" class="space-y-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- SUPABASE CLOUD DATABASE CONFIGURATION MODAL                           -->
+  <!-- ===================================================================== -->
+  <div id="supabaseModal"
+    class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm overflow-y-auto p-3 sm:p-6 flex items-start justify-center">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-6">
+      <!-- Modal Header -->
+      <div class="bg-navy-900 text-white px-6 py-4 flex items-center justify-between border-b-4 border-emerald-500">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-400/30 flex items-center justify-center font-bold text-lg">
+            ⚡
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-widest text-emerald-400 font-bold">Cloud Database Integration
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold tracking-tight">Supabase Realtime Cloud Sync</h3>
+          </div>
+        </div>
+        <button onclick="closeSupabaseModal()"
+          class="p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 text-xs sm:text-sm">
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 flex items-start gap-3">
+          <svg class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div class="text-xs leading-relaxed">
+            Hubungkan dashboard ini ke <strong>Supabase</strong> agar kandidat &amp; crewing team di mana saja bisa
+            mengisi tes dan melihat hasil secara <strong>real-time online</strong> bersama-sama.
+          </div>
+        </div>
+
+        <!-- Connection Status Banner -->
+        <div id="supabaseConnectionAlert"
+          class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between text-xs font-medium">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span id="supabaseAlertText">Mode Lokal (Offline): Data tersimpan di browser komputer ini.</span>
+          </div>
+          <span id="supabaseAlertBadge"
+            class="px-2 py-0.5 rounded bg-amber-200 text-amber-800 font-bold text-[10px] uppercase">LocalStorage</span>
+        </div>
+
+        <!-- Form Credentials -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+              Supabase Project URL
+            </label>
+            <input type="url" id="sbProjectUrl" value="https://idvvbcrffnaemmbanhlo.supabase.co"
+              class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono bg-slate-50 focus:bg-white transition" />
+            <p class="text-[11px] text-slate-500 mt-1">Ditemukan di Supabase: <strong>Project Settings &rarr; API &rarr;
+                Project URL</strong></p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">
+              Supabase Anon / Public Key
+            </label>
+            <input type="password" id="sbAnonKey" value="sb_publishable_XstBHs8BjHRIbMG_KFP9Bg_jhcmZs7O"
+              class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono bg-slate-50 focus:bg-white transition" />
+            <p class="text-[11px] text-slate-500 mt-1">Ditemukan di Supabase: <strong>Project Settings &rarr; API &rarr;
+                Project API Keys (anon public)</strong></p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200">
+          <button type="button" onclick="saveAndConnectSupabase()"
+            class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5">
+            <span>Hubungkan &amp; Sinkronkan</span>
+          </button>
+          <button type="button" onclick="disconnectSupabase()"
+            class="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs transition">
+            Gunakan Mode Lokal Saja
+          </button>
+          <button type="button" onclick="toggleSqlGuide()"
+            class="ml-auto px-3.5 py-2 rounded-xl text-navy-800 hover:bg-slate-100 text-xs font-semibold transition flex items-center gap-1">
+            <span>📜 Panduan Tabel SQL</span>
+          </button>
+        </div>
+
+        <!-- SQL Schema Guide Accordion -->
+        <div id="sqlGuideContainer"
+          class="hidden p-4 rounded-xl bg-navy-950 text-slate-200 text-xs space-y-3 font-mono">
+          <div class="flex items-center justify-between text-slate-400 border-b border-navy-800 pb-2">
+            <span class="text-amber-400 font-bold uppercase tracking-wider text-[11px]">Jalankan ini di Supabase SQL
+              Editor:</span>
+            <button onclick="copySqlSchema()"
+              class="px-2.5 py-1 rounded bg-navy-800 hover:bg-navy-700 text-white text-[11px] font-sans">
+              Salin SQL
+            </button>
+          </div>
+          <pre id="sqlSchemaPre"
+            class="overflow-x-auto text-[11px] leading-relaxed text-emerald-300 select-all p-2 bg-navy-900 rounded-lg"><code>create table if not exists public.candidate_records (
+  id text primary key,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  full_name text not null,
+  rank_applied text,
+  department text,
+  rank_category text,
+  vessel_type text,
+  gt_kw text,
+  coc_grade text,
+  test_date text,
+  proctor text,
+  role_module text,
+  char_correct integer default 0,
+  tech_correct integer default 0,
+  prac_correct integer default 0,
+  time_taken text,
+  cert_suitability text,
+  oral_notes text
+);
+
+alter table public.candidate_records enable row level security;
+
+create policy "Allow public access"
+on public.candidate_records
+for all
+to anon
+using (true)
+with check (true);
+
+alter publication supabase_realtime add table public.candidate_records;</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- EXECUTIVE SCORECARD MODAL (PRINTABLE & EDITABLE REMARKS)              -->
+  <!-- ===================================================================== -->
+  <div id="scorecardModal"
+    class="fixed inset-0 z-50 hidden bg-slate-950/75 backdrop-blur-sm overflow-y-auto p-3 sm:p-6 flex items-start justify-center">
+    <div id="scorecardModalContent"
+      class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-4">
+      <!-- Modal Top Banner -->
+      <div class="bg-navy-900 text-white px-6 py-4 flex items-center justify-between border-b-4 border-amber-500">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-12 h-12 rounded-xl bg-white shadow-sm border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+            <img
+              src="https://images.glints.com/unsafe/glints-dashboard.oss-ap-southeast-1.aliyuncs.com/company-logo/73408111f95bde52ba36773445dd3cfc.jpeg"
+              alt="PT SOSM Logo" class="w-full h-full object-contain rounded-lg"
+              onerror="this.style.display='none'; document.getElementById('sc-sosm-fallback-logo').classList.remove('hidden');" />
+            <div id="sc-sosm-fallback-logo"
+              class="hidden w-full h-full rounded-lg bg-navy-900 flex flex-col items-center justify-center text-white">
+              <span class="text-[13px] font-black tracking-tighter text-amber-400 leading-none">SOSM</span>
+              <span
+                class="text-[7px] font-bold tracking-widest text-slate-300 uppercase leading-none mt-0.5">MARITIME</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-[11px] uppercase tracking-widest text-amber-400 font-bold">PT SEVEN OCEAN SHIP MANAGEMENT
+            </div>
+            <h3 class="text-base sm:text-lg font-extrabold tracking-tight">EXECUTIVE CREW ASSESSMENT SCORECARD</h3>
+          </div>
+        </div>
+        <button onclick="closeScorecardModal()"
+          class="no-print p-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Scorecard Body -->
+      <div class="p-6 space-y-6 text-xs sm:text-sm">
+        <!-- Candidate Profile Grid -->
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-navy-800 mb-3 border-b border-slate-200 pb-1.5">
+            1. Candidate &amp; Vessel Assignment Profile
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div>
+              <span class="text-slate-500 block">Full Name</span>
+              <strong id="scName" class="text-navy-900 text-sm">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Rank Applied</span>
+              <strong id="scRank" class="text-navy-900 text-sm">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Department / Category</span>
+              <strong id="scDeptCat" class="text-navy-900">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">CoC / CoP Grade</span>
+              <strong id="scCoc" class="text-navy-900">-</strong>
+            </div>
+            <div class="sm:col-span-2">
+              <span class="text-slate-500 block">Vessel Type / GT / KW</span>
+              <strong id="scVessel" class="text-navy-900">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Test Date</span>
+              <strong id="scDate" class="text-navy-900">-</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Recruiter / Proctor</span>
+              <strong id="scProctor" class="text-navy-900">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Official Verdict Banner -->
+        <div id="scVerdictBanner"
+          class="p-4 rounded-xl border-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider block opacity-80">Official Assessment
+              Verdict</span>
+            <div id="scVerdictText" class="text-sm sm:text-base font-extrabold mt-0.5">-</div>
+          </div>
+          <div class="text-left sm:text-right shrink-0">
+            <span class="text-[11px] uppercase font-semibold opacity-80 block">Final Composite Score</span>
+            <span id="scCompositeBig" class="text-2xl font-black">0.0%</span>
+          </div>
+        </div>
+
+        <!-- Module Breakdown Table -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-navy-800 mb-2">
+            2. Weighted Module Breakdown (30% Character / 70% Role Competency)
+          </h4>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-navy-900 text-white">
+                  <th class="py-2.5 px-3.5 font-semibold">Assessment Module</th>
+                  <th class="py-2.5 px-3.5 font-semibold text-center">Questions</th>
+                  <th class="py-2.5 px-3.5 font-semibold text-center">Correct</th>
+                  <th class="py-2.5 px-3.5 font-semibold text-center">Raw Accuracy</th>
+                  <th class="py-2.5 px-3.5 font-semibold text-center">Weight</th>
+                  <th class="py-2.5 px-3.5 font-semibold text-right">Weighted Score</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                <tr>
+                  <td class="py-2.5 px-3.5 font-semibold text-navy-900">1_Character_MCQ (Safety &amp; Integrity)</td>
+                  <td class="py-2.5 px-3.5 text-center">15</td>
+                  <td id="scCharCorrect" class="py-2.5 px-3.5 text-center font-bold">0 / 15</td>
+                  <td id="scCharRaw" class="py-2.5 px-3.5 text-center">0.0%</td>
+                  <td class="py-2.5 px-3.5 text-center font-semibold">30%</td>
+                  <td id="scCharWeighted" class="py-2.5 px-3.5 text-right font-bold text-navy-900">0.00%</td>
+                </tr>
+                <tr>
+                  <td id="scRoleModuleName" class="py-2.5 px-3.5 font-semibold text-navy-900">2_Deck_Officer_MCQ</td>
+                  <td class="py-2.5 px-3.5 text-center">20</td>
+                  <td id="scRoleCorrect" class="py-2.5 px-3.5 text-center font-bold">0 / 20</td>
+                  <td id="scRoleRaw" class="py-2.5 px-3.5 text-center">0.0%</td>
+                  <td class="py-2.5 px-3.5 text-center font-semibold">70%</td>
+                  <td id="scRoleWeighted" class="py-2.5 px-3.5 text-right font-bold text-navy-900">0.00%</td>
+                </tr>
+                <tr class="bg-slate-100 font-extrabold text-navy-900">
+                  <td class="py-3 px-3.5" colspan="4">FINAL COMPOSITE EXAM SCORE</td>
+                  <td class="py-3 px-3.5 text-center">100%</td>
+                  <td id="scTotalComposite" class="py-3 px-3.5 text-right text-base text-amber-700">0.00%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3 Competency Pillars Accuracy -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider text-navy-800 mb-2">
+            3. Competency Pillar Diagnostic Breakdown
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white">
+              <div class="flex justify-between items-center text-xs font-bold text-navy-900">
+                <span>Pillar 1: Character &amp; Safety</span>
+                <span id="scPillar1Pct" class="text-amber-600">0%</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5" id="scPillar1Count">0 / 15 Correct (1_Character_MCQ)</div>
+              <div class="w-full h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                <div id="scPillar1Bar" class="h-full bg-navy-800 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white">
+              <div class="flex justify-between items-center text-xs font-bold text-navy-900">
+                <span>Pillar 2: Technical Knowledge</span>
+                <span id="scPillar2Pct" class="text-amber-600">0%</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5" id="scPillar2Count">0 / 10 Correct (Role Q1–Q10)</div>
+              <div class="w-full h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                <div id="scPillar2Bar" class="h-full bg-amber-500 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white">
+              <div class="flex justify-between items-center text-xs font-bold text-navy-900">
+                <span>Pillar 3: Practical &amp; Emergency</span>
+                <span id="scPillar3Pct" class="text-amber-600">0%</span>
+              </div>
+              <div class="text-[11px] text-slate-500 mt-0.5" id="scPillar3Count">0 / 10 Correct (Role Q11–Q20)</div>
+              <div class="w-full h-2 bg-slate-100 rounded-full mt-2 overflow-hidden">
+                <div id="scPillar3Bar" class="h-full bg-emerald-600 rounded-full" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editable Proctor / Crewing Officer Remarks -->
+        <div class="bg-amber-50/60 rounded-xl p-4 border border-amber-200 space-y-3">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-navy-900">
+            4. Crewing Officer / Proctor Evaluation &amp; Oral Verification Remarks
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Time Taken (Minutes)</label>
+              <input type="text" id="scTimeTaken" placeholder="e.g. 34 mins"
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block font-semibold text-slate-700 mb-1">Certificate Verification &amp; Vessel
+                Suitability</label>
+              <input type="text" id="scCertSuitability"
+                placeholder="e.g. CoC Verified via Ditkapel / Suitable for Ocean-Going Bulk Carrier"
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block font-semibold text-slate-700 mb-1">Oral Follow-Up Notes &amp; Superintendent
+                Recommendation</label>
+              <textarea id="scOralNotes" rows="2"
+                placeholder="Catatan wawancara lisan / area teknis yang perlu diverifikasi lebih lanjut..."
+                class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div
+          class="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-slate-200">
+          <button type="button" onclick="closeScorecardModal()"
+            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">
+            Close Window
+          </button>
+          <div class="flex items-center gap-2.5">
+            <button type="button" onclick="saveScorecardRemarks()"
+              class="px-4 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold shadow-sm transition">
+              Save Remarks
+            </button>
+            <button type="button" onclick="window.print()"
+              class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                </path>
+              </svg>
+              <span>Print Official Scorecard</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- COMPLETE JAVASCRIPT ENGINE & 95 OFFICIAL QUESTIONS DATASET            -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // 1. COMPLETE OFFICIAL QUESTION BANK (ALL 95 QUESTIONS FROM EXCEL WORKBOOK)
+    // =========================================================================
+    const QUESTION_BANK = {
+      "1_Character_MCQ": [
+        {
+          id: "CHAR-01",
+          qNum: 1,
+          pillar: "Stop-Work Authority",
+          question: "You observe a senior crew member about to enter an enclosed ballast tank without gas testing because the vessel is behind schedule. What is the ONLY correct action?",
+          options: {
+            A: "Let him enter quickly while you watch from the door",
+            B: "Exercise Stop-Work Authority immediately, block entry, and report to the Officer/Master",
+            C: "Wait until the job is finished and write a note in the logbook",
+            D: "Ask another rating to enter with him to save time"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-02",
+          qNum: 2,
+          pillar: "Integrity & Anti-Corruption",
+          question: "During port clearance, a shore agent hints that paying a small unofficial cash fee will avoid a minor logbook query. How must you respond under Company SMS?",
+          options: {
+            A: "Pay from petty cash to avoid vessel delay",
+            B: "Refuse firmly, make no falsifications, and report immediately to the Master / DPA",
+            C: "Alter the logbook entry so the agent is satisfied",
+            D: "Ignore the request and leave the gangway unattended"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-03",
+          qNum: 3,
+          pillar: "MARPOL Environmental Ethics",
+          question: "A colleague suggests pumping oily bilge water overboard at night without using the 15 ppm OWS because the sludge tank is nearly full. What should you do?",
+          options: {
+            A: "Agree only if the vessel is more than 50 NM from land",
+            B: "Refuse immediately, stop the illegal operation, and report via Master / Open Reporting",
+            C: "Keep quiet to protect your shipmate from dismissal",
+            D: "Mix detergent into the bilge so no oil sheen is visible"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-04",
+          qNum: 4,
+          pillar: "Honesty & Accountability",
+          question: "If you accidentally misread a gauge or make an operational error during your watch, what is the best professional action?",
+          options: {
+            A: "Hide the error and hope the next watch does not notice",
+            B: "Blame faulty equipment during the handover",
+            C: "Report it immediately to the Duty Officer/Engineer so corrective action can be taken safely",
+            D: "Wait until the end of the contract to mention it"
+          },
+          key: "C"
+        },
+        {
+          id: "CHAR-05",
+          qNum: 5,
+          pillar: "Fatigue & MLC Rest Hours",
+          question: "You are severely fatigued after consecutive cargo ports and feel unable to maintain a safe lookout/watch. What does MLC 2006 & Company SMS require?",
+          options: {
+            A: "Drink strong coffee and stay silent to show toughness",
+            B: "Notify the Master/Chief Engineer before watch so rest hours and safe manning can be arranged",
+            C: "Sign the rest-hour sheet as compliant even though you worked overtime",
+            D: "Sleep quietly in the corner of the bridge/control room"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-06",
+          qNum: 6,
+          pillar: "Drug & Alcohol Policy",
+          question: "Under international maritime Zero-Tolerance Drug & Alcohol standards, when is it acceptable to consume alcohol prior to watchkeeping?",
+          options: {
+            A: "One beer 2 hours before watch is acceptable",
+            B: "Only during celebrations in port while on duty",
+            C: "Never — strict BAC limits (0.00% / STCW <0.05%) and abstention windows apply prior to any duty",
+            D: "Whenever the weather is calm at anchor"
+          },
+          key: "C"
+        },
+        {
+          id: "CHAR-07",
+          qNum: 7,
+          pillar: "Closed-Loop Communication",
+          question: "During mooring or engine maneuvering, the Officer gives you a verbal order that is unclear due to wind/engine noise. What must you do?",
+          options: {
+            A: "Guess what the Officer meant and act fast",
+            B: "Nod your head so you do not look inexperienced",
+            C: "Ask for immediate clarification and repeat back the exact order before executing",
+            D: "Wait until the Officer shouts a second time"
+          },
+          key: "C"
+        },
+        {
+          id: "CHAR-08",
+          qNum: 8,
+          pillar: "Multicultural Teamwork",
+          question: "A disagreement arises with a crew member of a different nationality over deck/engine task priorities. How should you resolve it?",
+          options: {
+            A: "Speak in your native language with friends to exclude them",
+            B: "Communicate calmly in Maritime English focusing on safety/SMS procedures, escalating to supervisor if needed",
+            C: "Refuse to work on the same shift with that crew member",
+            D: "Argue loudly on deck in front of port workers"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-09",
+          qNum: 9,
+          pillar: "Permit to Work (PTW) Discipline",
+          question: "Why are safety checklists and Permits to Work (PTW) mandatory before Hot Work or Working Aloft?",
+          options: {
+            A: "Only to satisfy Port State Control inspectors during audits",
+            B: "They serve as critical physical verification barriers to prevent fatal accidents",
+            C: "They can be signed after completing the job to save time",
+            D: "They are optional for experienced crew with >5 years at sea"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-10",
+          qNum: 10,
+          pillar: "Chain of Command & Initiative",
+          question: "While doing routine rounds, you spot a small hydraulic oil spray near a hot exhaust manifold. What is the right sequence of action?",
+          options: {
+            A: "Wait for the weekly safety meeting to report it",
+            B: "Alert the Duty Officer/Engineer immediately, isolate/contain if trained and safe, and stand by",
+            C: "Cover the leak with a rag and continue your rounds",
+            D: "Shut down the main engine without informing the bridge"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-11",
+          qNum: 11,
+          pillar: "Contract & Schedule Adaptability",
+          question: "Due to port congestion, your relief is delayed by 14 days beyond your nominal contract end date. What is the expected professional conduct?",
+          options: {
+            A: "Refuse all duties immediately on the exact contract expiry date",
+            B: "Maintain safe, professional performance while coordinating relief updates through Master & Crewing",
+            C: "Threaten to call port authorities unless paid double immediately",
+            D: "Stop attending safety drills"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-12",
+          qNum: 12,
+          pillar: "Mentorship & Junior Crew",
+          question: "A newly joined cadet or junior rating makes a minor mistake rigging equipment. How should you respond?",
+          options: {
+            A: "Publicly humiliate them so they never repeat it",
+            B: "Correct the hazard safely, demonstrate the proper method patiently, and verify understanding",
+            C: "Do the job yourself without explaining anything",
+            D: "Report them immediately for dismissal"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-13",
+          qNum: 13,
+          pillar: "Near-Miss Reporting",
+          question: "You slip on an oily step on the stairs without getting injured. Why is reporting this as a 'Near-Miss' vital?",
+          options: {
+            A: "So the company can penalize the cleaner",
+            B: "It allows root-cause cleanup and prevents a future serious injury to another crew member",
+            C: "Near-misses do not need to be reported unless someone goes to the hospital",
+            D: "Only Officers are allowed to submit near-miss cards"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-14",
+          qNum: 14,
+          pillar: "Cyber & Social Media Security",
+          question: "Why must crew avoid posting real-time vessel cargo details, security layouts, or unverified incident videos on social media?",
+          options: {
+            A: "It uses too much satellite bandwidth",
+            B: "It breaches ISPS ship security, client confidentiality, and company media policy",
+            C: "It is allowed as long as the post is set to 'Friends Only'",
+            D: "Only Deck Officers are restricted from posting"
+          },
+          key: "B"
+        },
+        {
+          id: "CHAR-15",
+          qNum: 15,
+          pillar: "Emergency Muster Discipline",
+          question: "When the General Emergency Alarm sounds unexpectedly at 02:00 AM, what is your immediate priority?",
+          options: {
+            A: "Finish packing all personal luggage before going to deck",
+            B: "Grab lifejacket/immersion suit & required muster gear immediately and proceed to Muster Station",
+            C: "Call family on WhatsApp to ask what is happening",
+            D: "Wait in your cabin until someone knocks on your door"
+          },
+          key: "B"
+        }
+      ],
+
+      "2_Deck_Officer_MCQ": [
+        {
+          id: "DO-01",
+          qNum: 1,
+          pillar: "Knowledge: COLREGs Rule 19",
+          question: "In restricted visibility, you detect a vessel on radar only, bearing 30° on your port bow with a close-quarters situation developing. Under COLREG Rule 19, what action should you AVOID?",
+          options: {
+            A: "Reducing speed to bare steerageway",
+            B: "Altering course to starboard",
+            C: "Altering course to port for a vessel forward of the beam (other than one being overtaken)",
+            D: "Sounding fog signals every 2 minutes"
+          },
+          key: "C"
+        },
+        {
+          id: "DO-02",
+          qNum: 2,
+          pillar: "Knowledge: COLREGs Rule 15 & 17",
+          question: "Two power-driven vessels are crossing in clear visibility with risk of collision. You are the stand-on vessel, and the give-way vessel fails to take action. When MUST you take action under Rule 17(b)?",
+          options: {
+            A: "Immediately when the target appears at 12 NM",
+            B: "When collision cannot be avoided by the action of the give-way vessel alone",
+            C: "Never; the stand-on vessel must always maintain course and speed until impact",
+            D: "Only after receiving VHF agreement from the other ship"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-03",
+          qNum: 3,
+          pillar: "Knowledge: ECDIS Safety Parameters",
+          question: "On ECDIS, which contour marks the boundary between navigable water and unsafe shallow water and triggers an anti-grounding alarm?",
+          options: {
+            A: "Deep Contour",
+            B: "Safety Contour",
+            C: "Spot Sounding Filter",
+            D: "Mariners' Information Layer"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-04",
+          qNum: 4,
+          pillar: "Knowledge: UKC & Squat",
+          question: "When a vessel enters shallow water (depth/draft ratio < 1.5) and increases speed, what happens to Under Keel Clearance (UKC) due to hydrodynamic squat?",
+          options: {
+            A: "Squat decreases and UKC increases",
+            B: "Squat increases approximately with the square of speed (V²), reducing UKC",
+            C: "Squat only affects vessels in heavy swell",
+            D: "Squat raises the bow and increases stern clearance"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-05",
+          qNum: 5,
+          pillar: "Knowledge: Ship Stability (GM & FSE)",
+          question: "How does a partially filled (slack) ballast or fuel tank affect transverse vessel stability?",
+          options: {
+            A: "It lowers the center of gravity (KG) and increases GM",
+            B: "Free Surface Effect creates a virtual rise in KG, reducing effective GM",
+            C: "It has zero effect unless the vessel lists more than 15°",
+            D: "It permanently increases the vessel's reserve buoyancy"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-06",
+          qNum: 6,
+          pillar: "Knowledge: Structural Stress (SF & BM)",
+          question: "During cargo loading on a Bulk Carrier or Container Ship, what happens if heavy cargo is concentrated excessively in midship holds while end holds remain empty?",
+          options: {
+            A: "Excessive hogging bending moment",
+            B: "Excessive sagging bending moment and high shear forces at bulkheads",
+            C: "Zero longitudinal stress because the ends are light",
+            D: "Improved propeller immersion with no hull stress"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-07",
+          qNum: 7,
+          pillar: "Knowledge: MARPOL Annex V",
+          question: "Under MARPOL Annex V, under what conditions may comminuted (ground <25 mm) food waste be discharged outside Special Areas?",
+          options: {
+            A: "Anywhere as long as the vessel is underway",
+            B: "At least 3 NM from the nearest land while en route",
+            C: "At least 12 NM from the nearest land even when anchored",
+            D: "Food waste can never be discharged anywhere at sea"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-08",
+          qNum: 8,
+          pillar: "Knowledge: Ballast Water Management",
+          question: "Under the BWM Convention D-2 standard, what must be recorded in the Ballast Water Record Book (BWRB)?",
+          options: {
+            A: "Only ballast operations conducted inside port limits",
+            B: "Every ballast uptake, circulation/treatment, internal transfer, and discharge with date, time, position, and volume",
+            C: "Only when the BWTS system experiences an alarm",
+            D: "Only prior to dry-docking surveys"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-09",
+          qNum: 9,
+          pillar: "Knowledge: GMDSS Distress Procedure",
+          question: "What is the correct sequence when transmitting a Distress Alert using VHF DSC?",
+          options: {
+            A: "Speak 'Mayday' on Ch 16 first, then press the DSC Distress button",
+            B: "Select nature of distress on VHF DSC, transmit DSC Distress alert, wait for acknowledgment, then transmit Mayday voice on Ch 16",
+            C: "Call the company DPA by satellite phone before sending DSC",
+            D: "Switch VHF to 1W low power before sending DSC"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-10",
+          qNum: 10,
+          pillar: "Knowledge: ISM & SMS Audits",
+          question: "What is the primary role of the Designated Person Ashore (DPA) under the ISM Code?",
+          options: {
+            A: "Approving crew overtime and shore leave",
+            B: "Providing a direct link between the ship and highest level of management to monitor safety and pollution prevention",
+            C: "Negotiating charter party freight rates",
+            D: "Signing Port State Control inspection reports"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-11",
+          qNum: 11,
+          pillar: "Skill: Man Overboard (MOB)",
+          question: "A crew member falls overboard on your STARBOARD side while steaming at full sea speed. What is your immediate helm order?",
+          options: {
+            A: "Hard-a-Port to swing the bow toward the person",
+            B: "Hard-a-Starboard to kick the stern and propeller away from the person",
+            C: "Midships and crash astern immediately",
+            D: "Maintain course for 2 minutes before turning"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-12",
+          qNum: 12,
+          pillar: "Skill: ARPA Radar Plotting",
+          question: "You are using ARPA in congested waters and plan a course alteration to avoid Target A. What is the best practice before executing the turn?",
+          options: {
+            A: "Use ARPA Trial Maneuver to verify the new course creates safe CPA/TCPA with ALL surrounding targets",
+            B: "Switch radar to Head-Up unstabilized mode",
+            C: "Alter course by 3° increments every minute",
+            D: "Turn off AIS overlay so the screen is less cluttered"
+          },
+          key: "A"
+        },
+        {
+          id: "DO-13",
+          qNum: 13,
+          pillar: "Skill: BRM Pilotage Intervention",
+          question: "During outbound pilotage, the Pilot orders a course that puts the vessel directly toward a shoal buoy on ECDIS. How should the OOW apply BRM?",
+          options: {
+            A: "Stay silent because the Pilot has local knowledge",
+            B: "Politely and clearly challenge the Pilot ('Pilot, heading toward shallow water on port bow, confirm order?') and alert the Master immediately",
+            C: "Wait until the vessel touches bottom before informing the Master",
+            D: "Secretly change the rudder angle without telling the Pilot"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-14",
+          qNum: 14,
+          pillar: "Skill: Deep Water Anchoring",
+          question: "You are ordered to anchor in 42 meters of water. How must the anchor be deployed to avoid damaging the windlass brake?",
+          options: {
+            A: "Let go directly from the hawsepipe on the brake",
+            B: "Walk out the anchor under windlass power until 5–10 meters above the seabed before letting go on the brake",
+            C: "Drop the anchor while the vessel is moving ahead at 6 knots",
+            D: "Pay out 1 shackle and lock the bow stopper immediately"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-15",
+          qNum: 15,
+          pillar: "Skill: Parallel Indexing (PI)",
+          question: "Why is Parallel Indexing on radar an essential practical navigation skill during coastal transit?",
+          options: {
+            A: "It replaces the need for visual bearings and echo sounder",
+            B: "It provides continuous, real-time cross-track monitoring against a radar-conspicuous fixed target independent of GPS",
+            C: "It automatically steers the vessel along the route",
+            D: "It measures seawater salinity and draft"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-16",
+          qNum: 16,
+          pillar: "Skill: Enclosed Space Rescue",
+          question: "During a cargo hold inspection, a crew member collapses inside an unventilated space. As Officer in Charge on deck, what is your FIRST command?",
+          options: {
+            A: "Order two ratings to run inside immediately and pull him out",
+            B: "Raise the alarm, prohibit anyone from entering without SCBA and rescue gear, and start ventilation",
+            C: "Lower a regular mooring rope without harnesses",
+            D: "Close the hatch cover to contain gases"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-17",
+          qNum: 17,
+          pillar: "Skill: Mooring Tension Management",
+          question: "During cargo operations in a port with strong tidal range, the breast lines become excessively taut while spring lines go slack. What must you do?",
+          options: {
+            A: "Leave lines untouched until departure",
+            B: "Tend mooring lines promptly to equalize tension and keep the vessel safely alongside",
+            C: "Release all spring lines completely",
+            D: "Put the main engine dead slow ahead"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-18",
+          qNum: 18,
+          pillar: "Skill: PSC Readiness Inspection",
+          question: "Before arriving at a Paris/Tokyo MOU port, you test the Emergency Fire Pump. What must be verified for PSC compliance?",
+          options: {
+            A: "That the pump motor turns on for 5 seconds",
+            B: "That it primes rapidly and delivers simultaneous water jets from at least two hoses (one forward, one aft) at required pressure",
+            C: "Only that the maintenance sticker is up to date",
+            D: "That it runs only when the main generators are running"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-19",
+          qNum: 19,
+          pillar: "Skill: Weather Routing & Heavy Weather",
+          question: "Barometric pressure drops rapidly by 6 hPa in 3 hours with backing wind and long swell ahead. What practical precautions should the OOW initiate?",
+          options: {
+            A: "Increase to maximum RPM to outrun the storm",
+            B: "Alert Master, verify watertight integrity/lashings, secure deck gear, check bilges, and prepare heavy weather checklist",
+            C: "Pump out all double-bottom ballast tanks to make the ship lighter",
+            D: "Turn off weather facsimile and Navtex alarms"
+          },
+          key: "B"
+        },
+        {
+          id: "DO-20",
+          qNum: 20,
+          pillar: "Skill: Deck Logbook Entry",
+          question: "Which entry meets proper legal and maritime standard for a Deck Logbook?",
+          options: {
+            A: "'0815: Ship turned right to avoid fishing boat, weather bad.'",
+            B: "'0815 UTC: Posn 01°14.2'N 103°52.8'E, a/c from 090°T to 115°T to maintain 1.5 NM CPA clear of fishing vessel on port bow. Wind SW Force 5.'",
+            C: "'Morning watch: All normal, traffic clear.'",
+            D: "Writing entries in pencil first and erasing mistakes later"
+          },
+          key: "B"
+        }
+      ],
+
+      "3_Deck_Rating_MCQ": [
+        {
+          id: "DR-01",
+          qNum: 1,
+          pillar: "Knowledge: Helm Commands",
+          question: "The Master or Pilot orders 'Meet her' while the vessel is swinging to starboard. What does this helm command mean?",
+          options: {
+            A: "Put the rudder hard-a-starboard",
+            B: "Apply opposite (port) rudder to check and stop the vessel's swing",
+            C: "Put the rudder amidships and do nothing",
+            D: "Steer directly toward the nearest buoy"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-02",
+          qNum: 2,
+          pillar: "Knowledge: Helm Order Repetition",
+          question: "When the Officer of the Watch gives the helm order 'Port fifteen', what must the helmsman do?",
+          options: {
+            A: "Turn the wheel to starboard 15° silently",
+            B: "Repeat 'Port fifteen' clearly, apply 15° port rudder, and report 'Fifteen degrees of port wheel on, Sir'",
+            C: "Wait 10 seconds to see if the ship turns on its own",
+            D: "Turn the wheel until the heading changes by 15°"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-03",
+          qNum: 3,
+          pillar: "Knowledge: Navigation Lights",
+          question: "During night lookout on the bridge wing, you observe a vessel displaying a WHITE light over a RED light. What type of vessel is this?",
+          options: {
+            A: "Vessel engaged in fishing",
+            B: "Vessel engaged in pilotage duty",
+            C: "Vessel not under command",
+            D: "Minesweeper"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-04",
+          qNum: 4,
+          pillar: "Knowledge: Fog Sound Signals",
+          question: "While on lookout in thick fog, you hear TWO prolonged blasts every 2 minutes. What does this indicate?",
+          options: {
+            A: "Vessel at anchor",
+            B: "Power-driven vessel underway but stopped and making no way through the water",
+            C: "Vessel aground",
+            D: "Vessel towing another vessel"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-05",
+          qNum: 5,
+          pillar: "Knowledge: Lookout Reporting",
+          question: "As a bridge lookout, you spot a small unlit fishing boat 3 points on the starboard bow. How should you report it to the OOW?",
+          options: {
+            A: "Shout 'Boat over there!' and point your finger",
+            B: "Report clearly: 'Object / small fishing boat, three points on the starboard bow, Sir'",
+            C: "Leave the bridge wing to tell the Bosun",
+            D: "Wait until the boat comes within 100 meters"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-06",
+          qNum: 6,
+          pillar: "Knowledge: PPE for Working Aloft",
+          question: "Which PPE combination is mandatory before climbing a mast or working overside on a stage?",
+          options: {
+            A: "Safety shoes and cotton gloves only",
+            B: "Full-body safety harness with double shock-absorbing lanyards, chin-strap helmet, safety shoes, and lifebuoy standby",
+            C: "Lifejacket without a safety harness",
+            D: "Sunglasses and ear plugs"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-07",
+          qNum: 7,
+          pillar: "Knowledge: MARPOL Garbage Segregation",
+          question: "Where must empty plastic water bottles and plastic wrapping be disposed of onboard?",
+          options: {
+            A: "Thrown overboard when more than 25 NM from shore",
+            B: "Placed strictly in the designated Plastics garbage bin for shore reception",
+            C: "Burned in an open drum on the poop deck",
+            D: "Mixed with galley food waste"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-08",
+          qNum: 8,
+          pillar: "Knowledge: ISPS Gangway Watch",
+          question: "During port gangway watch, a person in overalls claims to be a surveyor but has no ID and is not on the visitor list. What do you do?",
+          options: {
+            A: "Let him go straight to the ship's office",
+            B: "Politely stop him at the gangway, check ID, keep him outside, and contact the OOW/SSO for verification",
+            C: "Ask him to sign the logbook and walk around unescorted",
+            D: "Ignore him because you are busy painting"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-09",
+          qNum: 9,
+          pillar: "Knowledge: Flag Etiquette",
+          question: "Where is the courtesy flag of the host country hoisted when entering a foreign port?",
+          options: {
+            A: "At the stern flagstaff",
+            B: "On the starboard yardarm of the main/foremast",
+            C: "On the port yardarm below the house flag",
+            D: "On the forecastle jackstaff"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-10",
+          qNum: 10,
+          pillar: "Knowledge: Fire Extinguisher Identification",
+          question: "A small electrical fire starts in a junction box on deck. Which fire extinguisher should you use?",
+          options: {
+            A: "Water jet hose",
+            B: "CO2 or Dry Chemical Powder extinguisher",
+            C: "Foam extinguisher",
+            D: "Bucket of seawater"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-11",
+          qNum: 11,
+          pillar: "Skill: Mooring Snap-Back Zones",
+          question: "During mooring operations, a synthetic hawser is under heavy strain on the winch drum. Where must deck crew NEVER stand?",
+          options: {
+            A: "Behind a solid steel bulwark clear of the line",
+            B: "Inside the coil bight or within the marked snap-back zone of the taut line",
+            C: "At the winch control lever wearing PPE",
+            D: "Near the gangway platform clear of lines"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-12",
+          qNum: 12,
+          pillar: "Skill: Securing Lines on Bitts",
+          question: "What is the proper way to make fast a mooring line onto a pair of mooring bitts after taking weight off the drum?",
+          options: {
+            A: "Wrap circular turns around only one post",
+            B: "Apply figure-eight turns around both bitts and secure the top turn with a light lashing",
+            C: "Tie a single reef knot around both posts",
+            D: "Leave the line on the warping drum without transferring to bitts"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-13",
+          qNum: 13,
+          pillar: "Skill: Marine Knots Selection",
+          question: "Which knot is best used to form a secure, non-slipping loop at the end of a heaving line or rescue line?",
+          options: {
+            A: "Reef Knot",
+            B: "Bowline",
+            C: "Clove Hitch",
+            D: "Figure-of-Eight Knot"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-14",
+          qNum: 14,
+          pillar: "Skill: Pilot Ladder Rigging",
+          question: "Before the Pilot boards, you inspect the Pilot Ladder. Which condition requires you to reject and replace the ladder immediately?",
+          options: {
+            A: "The wooden steps are painted gray",
+            B: "A broken/cracked step, twisted side ropes, or loose spreader bar",
+            C: "Two manropes are rigged alongside",
+            D: "A lifebuoy with self-igniting light is placed nearby"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-15",
+          qNum: 15,
+          pillar: "Skill: Enclosed Space Standby",
+          question: "You are stationed as the standby attendant at the manhole of a double-bottom tank while two crew members work inside. Suddenly they stop answering your calls. What is your IMMEDIATE action?",
+          options: {
+            A: "Climb down into the tank immediately without breathing apparatus to rescue them",
+            B: "Raise the emergency alarm immediately, notify the Bridge/OOW, and NEVER enter without SCBA and backup team",
+            C: "Walk away to look for the Bosun",
+            D: "Close the manhole cover to keep air inside"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-16",
+          qNum: 16,
+          pillar: "Skill: Surface Preparation & Painting",
+          question: "Before applying primer paint to a rusted steel deck area, what preparation steps must be completed?",
+          options: {
+            A: "Paint directly over loose rust so it seals moisture inside",
+            B: "Chip/needle-gun loose scale, clean salt/grease with fresh water, and ensure surface is completely dry",
+            C: "Wash with seawater and paint while still wet",
+            D: "Apply topcoat first and primer last"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-17",
+          qNum: 17,
+          pillar: "Skill: Cargo Hold Bilge Preparation",
+          question: "Before loading grain or bulk cargo, what must be done to the cargo hold bilge wells?",
+          options: {
+            A: "Fill them with seawater to test float switches",
+            B: "Clean out all previous cargo residues, test bilge suction, and cover rose boxes with burlap/filter cloth so cargo cannot choke the line",
+            C: "Weld the bilge cover plates shut",
+            D: "Pour lube oil into the bilge well to prevent rust"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-18",
+          qNum: 18,
+          pillar: "Skill: Liferaft Hydrostatic Release Unit (HRU)",
+          question: "How does a liferaft Hydrostatic Release Unit (HRU) work if a vessel sinks rapidly before crew can launch the raft manually?",
+          options: {
+            A: "It inflates the raft while still strapped tightly to the deck",
+            B: "Water pressure at 1.5–4 meters depth cuts the securing strap, allowing the raft to float free, pull the painter, inflate, and break the weak link",
+            C: "It requires a crew member to pull a battery switch",
+            D: "It only works in freshwater rivers"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-19",
+          qNum: 19,
+          pillar: "Skill: Anchor Chain Markings",
+          question: "When reporting anchor shackles during heaving up, how is each shackle (27.5 m) of anchor chain typically identified?",
+          options: {
+            A: "By counting the total number of links from the anchor",
+            B: "By painted white links and wire seizing on the stud links corresponding to the shackle number",
+            C: "By measuring with a tape measure at the hawsepipe",
+            D: "By listening to the windlass motor sound"
+          },
+          key: "B"
+        },
+        {
+          id: "DR-20",
+          qNum: 20,
+          pillar: "Skill: Fire Hose Coupling & Handling",
+          question: "When charging a fire hose on deck during a fire drill, why must two crew members hold the nozzle before opening the hydrant valve fully?",
+          options: {
+            A: "Because the hose might get dirty",
+            B: "High water pressure creates strong reaction force (whipping) that can injure a single operator",
+            C: "To prevent seawater from entering the nozzle",
+            D: "Because fire hydrants only work with two people turning the wheel"
+          },
+          key: "B"
+        }
+      ],
+
+      "4_Engine_Officer_MCQ": [
+        {
+          id: "EO-01",
+          qNum: 1,
+          pillar: "Knowledge: Main Engine Exhaust Temp",
+          question: "On a 2-stroke marine diesel engine, ONE cylinder shows abnormally high exhaust gas temperature while all other cylinders remain normal. What is the most likely cause?",
+          options: {
+            A: "Fouled turbocharger turbine blades",
+            B: "Faulty fuel injector (dribbling/poor atomization) or leaking exhaust valve on that cylinder",
+            C: "Dirty scavenge air cooler",
+            D: "Vessel steaming against heavy headwind"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-02",
+          qNum: 2,
+          pillar: "Knowledge: Generator Synchronizing",
+          question: "When manually synchronizing an incoming Auxiliary Generator onto the live main switchboard, how should the synchroscope pointer be moving just before closing the Air Circuit Breaker (ACB)?",
+          options: {
+            A: "Rotating fast counter-clockwise",
+            B: "Stopped dead at the 6 o'clock position",
+            C: "Rotating slowly clockwise, closing just before the 12 o'clock (11 o'clock) position",
+            D: "Rotating rapidly clockwise at 1 revolution per second"
+          },
+          key: "C"
+        },
+        {
+          id: "EO-03",
+          qNum: 3,
+          pillar: "Knowledge: Blackout Recovery",
+          question: "Under SOLAS regulations, within how many seconds must the Emergency Generator automatically start and connect to the emergency switchboard after a main power blackout?",
+          options: {
+            A: "15 seconds",
+            B: "45 seconds",
+            C: "2 minutes",
+            D: "5 minutes"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-04",
+          qNum: 4,
+          pillar: "Knowledge: MARPOL Annex I (OWS)",
+          question: "What must happen automatically when the Oil Content Meter (15 ppm bilge alarm) on an Oily Water Separator detects oil content exceeding 15 ppm?",
+          options: {
+            A: "An alarm sounds while overboard discharge continues for 5 minutes",
+            B: "An alarm sounds and the automatic 3-way stopping device diverts flow back to the bilge/sludge tank",
+            C: "The bilge pump speeds up to dilute the mixture",
+            D: "The Oil Record Book prints an error slip automatically"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-05",
+          qNum: 5,
+          pillar: "Knowledge: Fuel Changeover (ECA)",
+          question: "When changing over Main Engine fuel from high-viscosity VLSFO (heated) to low-viscosity MGO (unheated) before entering an Emission Control Area (ECA), what is the primary risk if done too quickly?",
+          options: {
+            A: "Excessive cylinder lubrication",
+            B: "Thermal shock causing fuel pump plunger seizure and rapid viscosity drop below 2 cSt",
+            C: "Turbocharger overspeed",
+            D: "High jacket cooling water pressure"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-06",
+          qNum: 6,
+          pillar: "Knowledge: Fuel Purifier Troubleshooting",
+          question: "A centrifugal fuel purifier repeatedly breaks its water seal and discharges fuel through the sludge/water outlet. Which is a primary cause?",
+          options: {
+            A: "Gravity disc hole diameter is too large or sealing water pressure/bowl O-ring is faulty",
+            B: "Fuel tank level is at 90%",
+            C: "Purifier motor amperage is slightly low",
+            D: "Engine room ambient temperature is 32°C"
+          },
+          key: "A"
+        },
+        {
+          id: "EO-07",
+          qNum: 7,
+          pillar: "Knowledge: Boiler Water Chemistry",
+          question: "Why is maintaining proper alkalinity (pH 10.5–11.5) and low chloride levels critical in an auxiliary steam boiler?",
+          options: {
+            A: "To increase steam pressure above safety valve settings",
+            B: "To prevent acidic corrosion, scale buildup on heating tubes, and priming/carryover",
+            C: "To reduce fuel consumption in the main engine",
+            D: "To prevent lube oil emulsification"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-08",
+          qNum: 8,
+          pillar: "Knowledge: Bunkering & Fuel Compatibility",
+          question: "Why should newly bunkered VLSFO/HFO be loaded into empty/segregated tanks rather than commingled with existing fuel onboard?",
+          options: {
+            A: "Because new fuel is always lighter than seawater",
+            B: "Commingling incompatible fuels can cause heavy asphaltene precipitation/sludging that chokes purifiers and filters",
+            C: "MARPOL prohibits having more than one fuel grade onboard",
+            D: "Mixing fuels increases the flashpoint above 100°C"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-09",
+          qNum: 9,
+          pillar: "Knowledge: Oily Water Separator ORB",
+          question: "Under which Oil Record Book (ORB) Part I letter code are operations involving disposal of oil residues (sludge) recorded?",
+          options: {
+            A: "Code A",
+            B: "Code C",
+            C: "Code G",
+            D: "Code I"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-10",
+          qNum: 10,
+          pillar: "Knowledge: Refrigeration & Air Conditioning",
+          question: "On a marine refrigeration plant, bubbles appearing in the liquid line sight glass combined with low suction pressure usually indicate:",
+          options: {
+            A: "Overcharge of refrigerant",
+            B: "Undercharge (shortage) of refrigerant or partially restricted drier/expansion valve",
+            C: "Condenser cooling seawater is too cold",
+            D: "Compressor lube oil level is too high"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-11",
+          qNum: 11,
+          pillar: "Skill: Crankcase Oil Mist Alarm",
+          question: "Practical Scenario: The Main Engine Crankcase Oil Mist Detector (OMD) triggers a high-mist alarm and automatic slowdown. What is the CRITICAL safety rule before inspecting the crankcase?",
+          options: {
+            A: "Open crankcase doors immediately to let the smoke escape",
+            B: "Stop engine, DO NOT open crankcase doors for at least 20 minutes until cooled down, keep clear of relief valves",
+            C: "Increase lube oil pressure and restart immediately",
+            D: "Inject CO2 directly into the scavenge air receiver"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-12",
+          qNum: 12,
+          pillar: "Skill: Lock-Out / Tag-Out (LOTO)",
+          question: "Before dismantling a sea water cooling pump for mechanical seal replacement, what is the complete safe isolation sequence?",
+          options: {
+            A: "Turn local start switch to OFF and start unbolting the casing",
+            B: "Isolate main breaker, apply padlock & LOTO tag, test 'dead' locally, close & lock suction/discharge valves, and vent/drain pump pressure safely",
+            C: "Ask the Oiler to stand near the switchboard while you work",
+            D: "Close only the discharge valve so water stays in the pump"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-13",
+          qNum: 13,
+          pillar: "Skill: Emergency Steering Gear",
+          question: "During river transit, the Bridge reports loss of steering follow-up control. Upon arriving at the Steering Gear Room, how do you take emergency local control?",
+          options: {
+            A: "Shut down both hydraulic steering pumps",
+            B: "Switch control selector to Local/Emergency, establish direct comms with Bridge, and operate manual solenoid/trick-wheel per rudder angle orders",
+            C: "Open the hydraulic tank drain valve",
+            D: "Wait for the vessel to drop anchor before touching any valves"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-14",
+          qNum: 14,
+          pillar: "Skill: Fixed CO2 Release Interlocks",
+          question: "Before releasing Fixed CO2 to extinguish a major Engine Room fire, which critical actions must be verified?",
+          options: {
+            A: "Keep Engine Room ventilation fans running to cool the space",
+            B: "Evacuate & headcount ALL crew, shut down ventilation blowers, close fire dampers/skylights, trip quick-closing fuel valves, and sound CO2 alarm",
+            C: "Open the Engine Room watertight doors for visibility",
+            D: "Start the main engine at dead slow ahead"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-15",
+          qNum: 15,
+          pillar: "Skill: UMS Duty Handover Checks",
+          question: "Before switching the Engine Room to Unattended Machinery Space (UMS) mode at 18:00, which test is mandatory?",
+          options: {
+            A: "Testing the whistle and fog bell",
+            B: "Testing the Dead-Man alarm, Engineer Call system, high-level bilge alarms, and checking fuel/LO spray shields",
+            C: "Shutting down all air compressors",
+            D: "Turning off fire detection loops to avoid false alarms"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-16",
+          qNum: 16,
+          pillar: "Skill: Bunkering Overflow Prevention",
+          question: "During HFO bunkering, the tank sounding approaches 85% capacity. What practical step should the Engineer in Charge take?",
+          options: {
+            A: "Keep pumping at full rate until oil appears at the air vent",
+            B: "Request the barge/terminal to reduce pumping rate ('topping off'), open the next tank valve first before closing the full tank valve",
+            C: "Close the manifold valve abruptly while the barge is pumping at full pressure",
+            D: "Stop taking soundings and rely solely on barge flowmeter"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-17",
+          qNum: 17,
+          pillar: "Skill: Scavenge Fire Response",
+          question: "High scavenge box temperature and sparks from the exhaust indicate a scavenge fire on a 2-stroke Main Engine. What should you do?",
+          options: {
+            A: "Open the scavenge inspection doors to spray water inside",
+            B: "Slow down/stop engine, cut off fuel to affected cylinder, increase cylinder lubrication, close scavenge drains, and activate fixed scavenge fire extinguishing system if needed",
+            C: "Run the engine at 100% MCR to blow the fire out",
+            D: "Shut down the jacket cooling water pump"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-18",
+          qNum: 18,
+          pillar: "Skill: Emergency Fire Pump Cold Start",
+          question: "During a drill, the diesel-driven Emergency Fire Pump fails to build discharge pressure even though the engine is running smoothly. What is the most likely practical issue?",
+          options: {
+            A: "The main engine is stopped",
+            B: "Loss of priming / air lock in the suction line or closed sea suction valve",
+            C: "The fuel tank is 80% full",
+            D: "The battery charger is switched on"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-19",
+          qNum: 19,
+          pillar: "Skill: High Lube Oil Temperature Diagnosis",
+          question: "An Auxiliary Engine experiences steadily rising Lube Oil inlet temperature. What is the first systematic check?",
+          options: {
+            A: "Replace all main bearings immediately",
+            B: "Check seawater cooling flow/differential temperature across the LO cooler and inspect the thermostatic bypass valve",
+            C: "Drain half the lube oil from the sump",
+            D: "Increase the generator electrical load"
+          },
+          key: "B"
+        },
+        {
+          id: "EO-20",
+          qNum: 20,
+          pillar: "Skill: Shore Power Connection",
+          question: "Before connecting shore electrical power in dry-dock, what must be verified after confirming the main generator breaker is open and interlocked?",
+          options: {
+            A: "That shore power voltage, frequency, and phase rotation sequence match the ship's busbars",
+            B: "That the Emergency Generator is running in parallel with shore power",
+            C: "That all Engine Room lights are switched off",
+            D: "That the shore cable is submerged in water for cooling"
+          },
+          key: "A"
+        }
+      ],
+
+      "5_Engine_Rating_MCQ": [
+        {
+          id: "ER-01",
+          qNum: 1,
+          pillar: "Knowledge: Engine Room Watch Rounds",
+          question: "During your Engine Room watchkeeping round, what key items must you inspect on running machinery?",
+          options: {
+            A: "Only the cleanliness of the control room floor",
+            B: "Lube oil/jacket water temperatures & pressures, sump oil levels, fuel/oil leaks, unusual noises/vibrations, and bilge well levels",
+            C: "Only the paint condition on the bulkhead",
+            D: "Only the main engine RPM counter"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-02",
+          qNum: 2,
+          pillar: "Knowledge: Fire Extinguisher for Oil Fire",
+          question: "A lube oil pipe leaks onto a hot surface and catches fire in the purifier room. Which extinguisher must NEVER be used?",
+          options: {
+            A: "Foam extinguisher",
+            B: "CO2 extinguisher",
+            C: "Direct Water Jet hose (spreads burning oil and risks electrocution)",
+            D: "Dry Chemical Powder extinguisher"
+          },
+          key: "C"
+        },
+        {
+          id: "ER-03",
+          qNum: 3,
+          pillar: "Knowledge: Bench Grinder Safety",
+          question: "Before using an electric bench grinder in the Engine Room workshop, which safety rule is mandatory?",
+          options: {
+            A: "Wear loose cotton gloves so your hands stay clean",
+            B: "Wear safety goggles/face shield, ensure tool rest gap is <=3 mm, guard is in place, and NEVER wear loose gloves",
+            C: "Stand directly in line with the spinning grinding wheel",
+            D: "Remove the spark guard for better visibility"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-04",
+          qNum: 4,
+          pillar: "Knowledge: Bilge & Oily Water Awareness",
+          question: "You discover an oily leak dripping into the Engine Room bilge well. What is the correct action?",
+          options: {
+            A: "Pour chemical soap/detergent into the bilge so it looks clean",
+            B: "Contain the leak with absorbent pads/save-all tray, stop the leak source if possible, and inform the Duty Engineer immediately",
+            C: "Pump the oily bilge directly overboard using the fire pump",
+            D: "Cover the bilge plate with cardboard"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-05",
+          qNum: 5,
+          pillar: "Knowledge: Self-Closing Sounding Cocks",
+          question: "Why must self-closing (dead-man) sounding pipe valves on double-bottom fuel tanks NEVER be tied or wedged open?",
+          options: {
+            A: "Because it makes the sounding tape rusty",
+            B: "In case of fire or tank overpressure, an open sounding cock allows oil spray or flooding into the Engine Room",
+            C: "Because it slows down the main engine",
+            D: "It is allowed during bunkering operations"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-06",
+          qNum: 6,
+          pillar: "Knowledge: Air Receiver Pressure",
+          question: "What is the typical normal starting air bottle pressure maintained for a marine Main Engine?",
+          options: {
+            A: "2 to 4 bar",
+            B: "25 to 30 bar",
+            C: "100 to 120 bar",
+            D: "0.5 bar"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-07",
+          qNum: 7,
+          pillar: "Knowledge: ISO Piping Color Codes",
+          question: "Under standard ISO marine piping color codes, what fluid is typically carried in a GREEN pipe versus a RED pipe?",
+          options: {
+            A: "Green = Fuel Oil; Red = Fresh Water",
+            B: "Green = Sea Water; Red = Fire Main / Steam",
+            C: "Green = Compressed Air; Red = Lube Oil",
+            D: "Green = Sewage; Red = Ballast Water"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-08",
+          qNum: 8,
+          pillar: "Knowledge: Ear Protection in ER",
+          question: "Why is wearing double hearing protection (earplugs + earmuffs) required in high-noise Engine Room spaces (>85–100 dB)?",
+          options: {
+            A: "To block out the Engineer's instructions",
+            B: "Prolonged exposure to high machinery noise causes permanent, irreversible hearing loss",
+            C: "Only when the vessel is in dry dock",
+            D: "To keep ears warm near the refrigeration plant"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-09",
+          qNum: 9,
+          pillar: "Knowledge: EEBD Purpose",
+          question: "What is the sole purpose of an Emergency Escape Breathing Device (EEBD) located in the Engine Room?",
+          options: {
+            A: "To enter a burning compartment to fight a fire",
+            B: "To provide 10–15 minutes of breathable air strictly for escaping a smoke/gas-filled space to safety",
+            C: "For underwater hull inspection",
+            D: "For extended tank cleaning jobs"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-10",
+          qNum: 10,
+          pillar: "Knowledge: Hot Surface Burns Prevention",
+          question: "While working near main engine exhaust manifolds or steam pipes, what precaution prevents severe contact burns?",
+          options: {
+            A: "Wear short-sleeve T-shirts to stay cool",
+            B: "Wear long-sleeve flame-retardant boiler suit, gloves, and verify lagging/insulation shields are intact",
+            C: "Touch pipes with bare hands to check temperature",
+            D: "Pour cold water on hot exhaust pipes"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-11",
+          qNum: 11,
+          pillar: "Skill: Duplex Strainer Cleaning",
+          question: "Practical Scenario: You are asked to clean a dirty duplex fuel/lube oil filter while the engine is running. What is the FIRST step before loosening the cover bolts?",
+          options: {
+            A: "Unscrew the filter cover bolts immediately",
+            B: "Change over the duplex valve smoothly to the clean standby chamber, isolate the dirty side, and open the vent/drain to release pressure",
+            C: "Stop the main engine without telling the bridge",
+            D: "Hit the filter cover with a hammer to loosen it"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-12",
+          qNum: 12,
+          pillar: "Skill: Valve Operation (Globe vs Gate vs Check)",
+          question: "Which valve type is designed strictly to allow flow in ONE direction only and prevent backflow?",
+          options: {
+            A: "Gate Valve",
+            B: "Non-Return (Check) Valve",
+            C: "Butterfly Valve",
+            D: "Ball Valve"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-13",
+          qNum: 13,
+          pillar: "Skill: Bunkering Manifold Watch",
+          question: "During bunkering hose connection at the manifold, you notice two bolt holes on the flange do not have bolts fitted. What must you do?",
+          options: {
+            A: "Ignore it because 6 bolts out of 8 is enough",
+            B: "Ensure a new gasket is used and fit/tighten bolts in EVERY single flange hole evenly before bunkering starts",
+            C: "Wrap duct tape around the flange",
+            D: "Start pumping at low pressure and see if it leaks"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-14",
+          qNum: 14,
+          pillar: "Skill: Manual Tank Sounding",
+          question: "When taking a manual sounding of a fuel oil tank with a brass bob and steel tape, what indicates the exact fuel level?",
+          options: {
+            A: "The sound of the bob hitting the bottom",
+            B: "The clear horizontal cut line left on the oil-finding paste / tape after touching the datum plate",
+            C: "The temperature of the tape handle",
+            D: "The smell of vapor coming out of the pipe"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-15",
+          qNum: 15,
+          pillar: "Skill: Lifting Gear Inspection",
+          question: "Before using a chain block and wire sling to lift a heavy cylinder head or pump casing, what must you check?",
+          options: {
+            A: "That the paint on the chain block is shiny",
+            B: "Check Safe Working Load (SWL) markings, inspect chain/slings/shackles for cracks, kinks, or broken wires, and verify secure overhead padeye",
+            C: "Lift it quickly to test if the sling holds",
+            D: "Stand directly underneath the suspended load to guide it"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-16",
+          qNum: 16,
+          pillar: "Skill: Oily Rag Disposal",
+          question: "After wiping down lube oil spills with cotton rags, where must those oil-soaked rags be placed?",
+          options: {
+            A: "In a plastic bag inside your cabin",
+            B: "In a self-closing metal oily-rag bin to prevent spontaneous combustion fires",
+            C: "In the galley food waste bin",
+            D: "Tucked behind a warm boiler pipe to dry out"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-17",
+          qNum: 17,
+          pillar: "Skill: Gasket Surface Preparation",
+          question: "When assisting an Engineer to replace a leaking pipe flange gasket, how should you clean the flange faces?",
+          options: {
+            A: "Use a heavy chisel to gouge deep grooves into the metal",
+            B: "Scrape off old gasket material cleanly without scoring/scratching the machined sealing face",
+            C: "Leave half of the old gasket stuck to the flange",
+            D: "Apply grease instead of installing a new gasket"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-18",
+          qNum: 18,
+          pillar: "Skill: Engine Room Escape Route",
+          question: "Thick black smoke suddenly fills the lower Engine Room platform and lights go out. How do you escape safely?",
+          options: {
+            A: "Climb up the main open gratings directly through rising smoke",
+            B: "Don the nearest EEBD, stay low, and proceed immediately to the enclosed Emergency Escape Trunk leading to the upper deck",
+            C: "Hide inside the steering gear store",
+            D: "Take the engine room elevator"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-19",
+          qNum: 19,
+          pillar: "Skill: Purifier Bowl Cleaning",
+          question: "When cleaning purifier discs during overhaul, why must you never mix discs from different purifiers or scrape them with hard steel tools?",
+          options: {
+            A: "Because the discs are made of plastic",
+            B: "Each bowl assembly is precision-balanced as a set; scratching or mixing discs causes severe vibration and bowl failure",
+            C: "It changes the color of the fuel oil",
+            D: "It makes the purifier spin backward"
+          },
+          key: "B"
+        },
+        {
+          id: "ER-20",
+          qNum: 20,
+          pillar: "Skill: Reporting Bilge High-Level Alarm",
+          question: "While doing rounds, you notice water rising rapidly in the aft Engine Room bilge well before the alarm sounds. What should you do?",
+          options: {
+            A: "Wait until the high-level alarm sounds on the bridge",
+            B: "Inform the Duty Engineer immediately and check nearby sea-water pipes/valves for leaks",
+            C: "Close the watertight door and go for tea break",
+            D: "Turn off the bilge alarm buzzer"
+          },
+          key: "B"
+        }
+      ]
+    };
+
+    // =========================================================================
+    // 2. PRE-POPULATED REALISTIC CANDIDATE LOG & STATE MANAGEMENT
+    // =========================================================================
+    const STORAGE_KEY = "pt_sosm_crew_assessment_records_v1";
+
+    const DEFAULT_CANDIDATES = [
+      {
+        id: "CAND-1001",
+        fullName: "Rizky Pratama Putra",
+        rankApplied: "2nd Officer",
+        department: "Deck",
+        rankCategory: "Officer",
+        vesselType: "Bulk Carrier",
+        gtKw: "43,200 GT / 9,600 KW",
+        cocGrade: "STCW II/1 (OOW Deck)",
+        testDate: "2026-11-18",
+        proctor: "Capt. Ahmad Fauzi (Crewing Supt.)",
+        roleModule: "2_Deck_Officer_MCQ",
+        charCorrect: 14,
+        techCorrect: 9,
+        pracCorrect: 9,
+        timeTaken: "32 mins",
+        certSuitability: "STCW II/1 & ECDIS Generic/Type-Specific Verified. Suitable for Supramax/Panamax Bulk Carrier.",
+        oralNotes: "Strong COLREGs Rule 19 & BRM pilotage intervention awareness. Recommended for immediate line-up."
+      },
+      {
+        id: "CAND-1002",
+        fullName: "Dimas Bayu Nugroho",
+        rankApplied: "4th Engineer",
+        department: "Engine",
+        rankCategory: "Officer",
+        vesselType: "Oil / Chemical Tanker",
+        gtKw: "29,800 GT / 8,250 KW",
+        cocGrade: "STCW III/1 (OOW Engine)",
+        testDate: "2026-11-20",
+        proctor: "C/E Hendra Kusuma (Tech Supt.)",
+        roleModule: "4_Engine_Officer_MCQ",
+        charCorrect: 13,
+        techCorrect: 7,
+        pracCorrect: 8,
+        timeTaken: "38 mins",
+        certSuitability: "STCW III/1 & Basic/Adv Oil Tanker COP verified.",
+        oralNotes: "Competent score (78.5%). Verify generator synchronizing & ORB Code C entries during Superintendent oral check."
+      },
+      {
+        id: "CAND-1003",
+        fullName: "Yohanes Baptista Latupeirissa",
+        rankApplied: "Able Seaman (AB)",
+        department: "Deck",
+        rankCategory: "Rating",
+        vesselType: "SPB / SPOB",
+        gtKw: "4,850 GT / 2,400 KW",
+        cocGrade: "STCW II/5 (Able Seafarer Deck)",
+        testDate: "2026-11-21",
+        proctor: "Capt. Ahmad Fauzi (Crewing Supt.)",
+        roleModule: "3_Deck_Rating_MCQ",
+        charCorrect: 14,
+        techCorrect: 8,
+        pracCorrect: 9,
+        timeTaken: "29 mins",
+        certSuitability: "STCW II/5, BST, SCRB & Ratings Forming Part of Navigational Watch valid.",
+        oralNotes: "Excellent snap-back zone & pilot ladder rigging knowledge. Ready for SPB domestic/regional fleet."
+      },
+      {
+        id: "CAND-1004",
+        fullName: "Slamet Riyadi",
+        rankApplied: "Oiler / Motorman",
+        department: "Engine",
+        rankCategory: "Rating",
+        vesselType: "Tug & Barge",
+        gtKw: "495 GT / 3,200 HP (2,386 KW)",
+        cocGrade: "STCW III/5 (Able Seafarer Engine)",
+        testDate: "2026-11-23",
+        proctor: "C/E Hendra Kusuma (Tech Supt.)",
+        roleModule: "5_Engine_Rating_MCQ",
+        charCorrect: 10,
+        techCorrect: 6,
+        pracCorrect: 6,
+        timeTaken: "41 mins",
+        certSuitability: "STCW III/4 valid; III/5 renewal in progress.",
+        oralNotes: "Below 70% threshold (62.0%). Weak on duplex strainer changeover & EEBD escape rules. Advise refresher training before re-test."
+      },
+      {
+        id: "CAND-1005",
+        fullName: "Capt. Andreas Gunawan",
+        rankApplied: "Chief Officer",
+        department: "Deck",
+        rankCategory: "Officer",
+        vesselType: "Bulk Carrier",
+        gtKw: "58,400 GT / 11,400 KW",
+        cocGrade: "STCW II/2 (Master / Chief Mate)",
+        testDate: "2026-11-24",
+        proctor: "Capt. Ahmad Fauzi (Crewing Supt.)",
+        roleModule: "2_Deck_Officer_MCQ",
+        charCorrect: 15,
+        techCorrect: 9,
+        pracCorrect: 10,
+        timeTaken: "27 mins",
+        certSuitability: "STCW II/2 Unlimited verified. Extensive Cape/Ultramax grain & coal loading experience.",
+        oralNotes: "Top-tier score (96.5%). Zero errors on Character & Practical Scenarios. Approved for Owner interview."
+      }
+    ];
+
+    let candidateRecords = [];
+    let pillarBarChartInstance = null;
+    let outcomeDoughnutChartInstance = null;
+    let activeScorecardId = null;
+
+    // Live Exam State
+    let currentExamSession = null;
+    let examTimerInterval = null;
+    let examSecondsRemaining = 45 * 60;
+    let examTimerPaused = false;
+    let examStartTimestamp = null;
+
+    // Question Bank State
+    let selectedBankModule = "ALL";
+    let showBankKeys = true;
+
+    // =========================================================================
+    // 3. SCORE CALCULATION & HELPER UTILITIES
+    // =========================================================================
+    function computeCandidateMetrics(record) {
+      const charCorrect = Number(record.charCorrect) || 0;
+      const techCorrect = Number(record.techCorrect) || 0;
+      const pracCorrect = Number(record.pracCorrect) || 0;
+      const roleCorrect = techCorrect + pracCorrect;
+
+      const charRawPct = (charCorrect / 15) * 100;
+      const roleRawPct = (roleCorrect / 20) * 100;
+
+      const charWeighted = (charCorrect / 15) * 30;
+      const roleWeighted = (roleCorrect / 20) * 70;
+      const compositeScore = Number((charWeighted + roleWeighted).toFixed(2));
+
+      const pillar1Pct = Math.round((charCorrect / 15) * 100);
+      const pillar2Pct = Math.round((techCorrect / 10) * 100);
+      const pillar3Pct = Math.round((pracCorrect / 10) * 100);
+
+      let statusShort = "FAIL";
+      let verdictFull = "FAIL (< 70%) - BELOW MINIMUM STCW / COMPANY STANDARD";
+      let badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
+
+      if (compositeScore >= 80) {
+        statusShort = "PASS - EXCELLENT";
+        verdictFull = "PASS - EXCELLENT (>= 80%) - PROCEED TO TECHNICAL INTERVIEW / OFFER";
+        badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+      } else if (compositeScore >= 70) {
+        statusShort = "PASS - COMPETENT";
+        verdictFull = "PASS - COMPETENT (70% - 79%) - PROCEED WITH ORAL VERIFICATION";
+        badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+      }
+
+      return {
+        charCorrect,
+        techCorrect,
+        pracCorrect,
+        roleCorrect,
+        charRawPct: Number(charRawPct.toFixed(1)),
+        roleRawPct: Number(roleRawPct.toFixed(1)),
+        charWeighted: Number(charWeighted.toFixed(2)),
+        roleWeighted: Number(roleWeighted.toFixed(2)),
+        compositeScore,
+        pillar1Pct,
+        pillar2Pct,
+        pillar3Pct,
+        statusShort,
+        verdictFull,
+        badgeClass
+      };
+    }
+
+    function getRoleModuleKey(dept, category) {
+      if (dept === "Deck" && category === "Officer") return "2_Deck_Officer_MCQ";
+      if (dept === "Deck" && category === "Rating") return "3_Deck_Rating_MCQ";
+      if (dept === "Engine" && category === "Officer") return "4_Engine_Officer_MCQ";
+      return "5_Engine_Rating_MCQ";
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      const colors = {
+        success: "bg-emerald-900 border-emerald-500 text-white",
+        warning: "bg-amber-900 border-amber-400 text-white",
+        danger: "bg-rose-900 border-rose-500 text-white",
+        info: "bg-navy-900 border-amber-400 text-white"
+      };
+      toast.className = `pointer-events-auto p-3.5 rounded-xl border-l-4 shadow-xl text-xs font-medium flex items-center justify-between gap-3 transition-all ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" class="text-white/70 hover:text-white font-bold">✕</button>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 4500);
+    }
+
+    function loadRecordsFromStorage() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            candidateRecords = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Storage load fallback:", e);
+      }
+      candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES));
+      saveRecordsToStorage();
+    }
+
+    function saveRecordsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(candidateRecords));
+      } catch (e) {
+        console.warn("Storage save error:", e);
+      }
+    }
+
+    function resetDemoData() {
+      candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES));
+      saveRecordsToStorage();
+      renderDashboard();
+      showToast("Sample candidate log restored to default 5 records.", "info");
+    }
+
+    // =========================================================================
+    // SUPABASE CLOUD DATABASE SYNC & REALTIME HANDLERS
+    // =========================================================================
+    let supabaseClient = null;
+    let supabaseRealtimeChannel = null;
+
+    function recordToSupabase(rec) {
+      return {
+        id: rec.id,
+        full_name: rec.fullName || "",
+        rank_applied: rec.rankApplied || "",
+        department: rec.department || "",
+        rank_category: rec.rankCategory || "",
+        vessel_type: rec.vesselType || "",
+        gt_kw: rec.gtKw || "",
+        coc_grade: rec.cocGrade || "",
+        test_date: rec.testDate || "",
+        proctor: rec.proctor || "",
+        role_module: rec.roleModule || "",
+        char_correct: Number(rec.charCorrect) || 0,
+        tech_correct: Number(rec.techCorrect) || 0,
+        prac_correct: Number(rec.pracCorrect) || 0,
+        time_taken: rec.timeTaken || "",
+        cert_suitability: rec.certSuitability || "",
+        oral_notes: rec.oralNotes || ""
+      };
+    }
+
+    function supabaseToRecord(row) {
+      return {
+        id: row.id,
+        fullName: row.full_name || "",
+        rankApplied: row.rank_applied || "",
+        department: row.department || "",
+        rankCategory: row.rank_category || "",
+        vesselType: row.vessel_type || "",
+        gtKw: row.gt_kw || "",
+        cocGrade: row.coc_grade || "",
+        testDate: row.test_date || "",
+        proctor: row.proctor || "",
+        roleModule: row.role_module || "",
+        charCorrect: Number(row.char_correct) || 0,
+        techCorrect: Number(row.tech_correct) || 0,
+        pracCorrect: Number(row.prac_correct) || 0,
+        timeTaken: row.time_taken || "",
+        certSuitability: row.cert_suitability || "",
+        oralNotes: row.oral_notes || ""
+      };
+    }
+
+    function openSupabaseModal() {
+      const defaultUrl = 'https://idvvbcrffnaemmbanhlo.supabase.co';
+      const defaultKey = 'sb_publishable_XstBHs8BjHRIbMG_KFP9Bg_jhcmZs7O';
+      const url = localStorage.getItem('SOSM_SUPABASE_URL') || defaultUrl;
+      const key = localStorage.getItem('SOSM_SUPABASE_KEY') || defaultKey;
+      const urlInput = document.getElementById('sbProjectUrl');
+      const keyInput = document.getElementById('sbAnonKey');
+      if (urlInput) urlInput.value = url;
+      if (keyInput) keyInput.value = key;
+      updateSupabaseModalUI();
+      document.getElementById('supabaseModal').classList.remove('hidden');
+    }
+
+    function closeSupabaseModal() {
+      document.getElementById('supabaseModal').classList.add('hidden');
+    }
+
+    function toggleSqlGuide() {
+      const el = document.getElementById('sqlGuideContainer');
+      if (el) el.classList.toggle('hidden');
+    }
+
+    function copySqlSchema() {
+      const codeEl = document.getElementById('sqlSchemaPre');
+      if (codeEl) {
+        navigator.clipboard.writeText(codeEl.innerText).then(() => {
+          showToast("SQL script copied to clipboard!", "success");
+        }).catch(() => {
+          showToast("Silakan salin teks SQL secara manual.", "info");
+        });
+      }
+    }
+
+    function updateSupabaseModalUI() {
+      const isConnected = !!supabaseClient;
+      const alertEl = document.getElementById('supabaseConnectionAlert');
+      const alertText = document.getElementById('supabaseAlertText');
+      const alertBadge = document.getElementById('supabaseAlertBadge');
+      const indicator = document.getElementById('supabaseIndicator');
+      const statusText = document.getElementById('supabaseStatusText');
+
+      if (indicator && statusText) {
+        if (isConnected) {
+          indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+          statusText.textContent = "Supabase: Live";
+        } else {
+          indicator.className = "w-2.5 h-2.5 rounded-full bg-slate-400";
+          statusText.textContent = "Supabase Sync";
+        }
+      }
+
+      if (alertEl && alertText && alertBadge) {
+        if (isConnected) {
+          alertEl.className = "p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs font-medium";
+          alertText.innerHTML = "<strong>Terhubung ke Supabase Cloud:</strong> Real-time sinkronisasi aktif.";
+          alertBadge.className = "px-2 py-0.5 rounded bg-emerald-200 text-emerald-800 font-bold text-[10px] uppercase";
+          alertBadge.textContent = "Online Live";
+        } else {
+          alertEl.className = "p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-center justify-between text-xs font-medium";
+          alertText.innerHTML = "Mode Lokal (Offline): Data tersimpan di browser komputer ini.";
+          alertBadge.className = "px-2 py-0.5 rounded bg-amber-200 text-amber-800 font-bold text-[10px] uppercase";
+          alertBadge.textContent = "LocalStorage";
+        }
+      }
+    }
+
+    async function initSupabase() {
+      const defaultUrl = 'https://idvvbcrffnaemmbanhlo.supabase.co';
+      const defaultKey = 'sb_publishable_XstBHs8BjHRIbMG_KFP9Bg_jhcmZs7O';
+      let url = localStorage.getItem('SOSM_SUPABASE_URL') || defaultUrl;
+      url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+      const key = localStorage.getItem('SOSM_SUPABASE_KEY') || defaultKey;
+
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          updateSupabaseModalUI();
+          await fetchRecordsFromSupabase();
+          subscribeToSupabaseRealtime();
+        } catch (e) {
+          console.warn("Supabase auto-init failed:", e);
+          supabaseClient = null;
+          updateSupabaseModalUI();
+        }
+      } else {
+        updateSupabaseModalUI();
+      }
+    }
+
+    async function saveAndConnectSupabase() {
+      let url = document.getElementById('sbProjectUrl').value.trim();
+      const key = document.getElementById('sbAnonKey').value.trim();
+
+      if (!url || !key) {
+        showToast("Mohon masukkan Project URL dan Anon Key Supabase.", "warning");
+        return;
+      }
+
+      url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+
+      try {
+        if (!window.supabase) {
+          showToast("Library Supabase belum termuat. Periksa koneksi internet.", "danger");
+          return;
+        }
+
+        const client = window.supabase.createClient(url, key);
+        const { data, error } = await client.from('candidate_records').select('id').limit(1);
+
+        if (error) {
+          throw error;
+        }
+
+        localStorage.setItem('SOSM_SUPABASE_URL', url);
+        localStorage.setItem('SOSM_SUPABASE_KEY', key);
+        supabaseClient = client;
+
+        updateSupabaseModalUI();
+        showToast("Berhasil terhubung ke Supabase Cloud!", "success");
+        await fetchRecordsFromSupabase();
+        subscribeToSupabaseRealtime();
+        closeSupabaseModal();
+      } catch (err) {
+        console.error("Supabase test error:", err);
+        showToast("Gagal terhubung: " + (err.message || "Periksa URL, Key, dan pastikan tabel SQL sudah dibuat."), "danger");
+      }
+    }
+
+    function disconnectSupabase() {
+      localStorage.removeItem('SOSM_SUPABASE_URL');
+      localStorage.removeItem('SOSM_SUPABASE_KEY');
+      if (supabaseRealtimeChannel) {
+        try { supabaseRealtimeChannel.unsubscribe(); } catch (e) { }
+        supabaseRealtimeChannel = null;
+      }
+      supabaseClient = null;
+      updateSupabaseModalUI();
+      showToast("Telah beralih ke Mode Lokal (LocalStorage).", "info");
+      closeSupabaseModal();
+    }
+
+    async function fetchRecordsFromSupabase() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('candidate_records')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          candidateRecords = data.map(supabaseToRecord);
+          saveRecordsToStorage();
+          renderDashboard();
+          showToast(`Sinkron ${data.length} data kandidat dari Supabase.`, "success");
+        } else if (data && data.length === 0) {
+          // Seed database if empty
+          const seedData = DEFAULT_CANDIDATES.map(recordToSupabase);
+          await supabaseClient.from('candidate_records').insert(seedData);
+          candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES));
+          saveRecordsToStorage();
+          renderDashboard();
+        }
+      } catch (e) {
+        console.warn("Fetch Supabase error:", e);
+      }
+    }
+
+    function subscribeToSupabaseRealtime() {
+      if (!supabaseClient) return;
+      if (supabaseRealtimeChannel) {
+        try { supabaseRealtimeChannel.unsubscribe(); } catch (e) { }
+      }
+      try {
+        supabaseRealtimeChannel = supabaseClient
+          .channel('candidate_records_realtime')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'candidate_records' }, (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const newRec = supabaseToRecord(payload.new);
+              if (!candidateRecords.some(r => r.id === newRec.id)) {
+                candidateRecords.unshift(newRec);
+                saveRecordsToStorage();
+                renderDashboard();
+                showToast(`Peserta baru selesai tes: ${newRec.fullName}`, "info");
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedRec = supabaseToRecord(payload.new);
+              const idx = candidateRecords.findIndex(r => r.id === updatedRec.id);
+              if (idx !== -1) {
+                candidateRecords[idx] = updatedRec;
+                saveRecordsToStorage();
+                renderDashboard();
+              }
+            } else if (payload.eventType === 'DELETE') {
+              candidateRecords = candidateRecords.filter(r => r.id !== payload.old.id);
+              saveRecordsToStorage();
+              renderDashboard();
+            }
+          })
+          .subscribe();
+      } catch (e) {
+        console.warn("Realtime error:", e);
+      }
+    }
+
+    // =========================================================================
+    // 4. TAB NAVIGATION CONTROLLER
+    // =========================================================================
+    function switchTab(tabName) {
+      const views = ["dashboard", "exam", "bank"];
+      views.forEach((v) => {
+        const viewEl = document.getElementById(`view-${v}`);
+        const btnEl = document.getElementById(`tab-btn-${v}`);
+        if (v === tabName) {
+          viewEl.classList.remove("hidden");
+          btnEl.classList.remove("tab-inactive");
+          btnEl.classList.add("tab-active");
+        } else {
+          viewEl.classList.add("hidden");
+          btnEl.classList.remove("tab-active");
+          btnEl.classList.add("tab-inactive");
+        }
+      });
+
+      if (tabName === "dashboard") {
+        renderDashboard();
+      } else if (tabName === "bank") {
+        renderQuestionBank();
+      }
+    }
+
+    // =========================================================================
+    // 5. TAB 1: EXECUTIVE CREWING DASHBOARD & CHARTS
+    // =========================================================================
+    function renderDashboard() {
+      const searchVal = (document.getElementById("filterSearch").value || "").toLowerCase().trim();
+      const deptVal = document.getElementById("filterDept").value;
+      const catVal = document.getElementById("filterCategory").value;
+      const statusVal = document.getElementById("filterStatus").value;
+
+      // Enrich all records with computed scores
+      const enrichedAll = candidateRecords.map((rec) => ({
+        ...rec,
+        metrics: computeCandidateMetrics(rec)
+      }));
+
+      // Update KPI Cards using all records
+      const total = enrichedAll.length;
+      const passedCount = enrichedAll.filter((r) => r.metrics.compositeScore >= 70).length;
+      const passRate = total > 0 ? ((passedCount / total) * 100).toFixed(1) : "0.0";
+      const avgComposite = total > 0
+        ? (enrichedAll.reduce((acc, r) => acc + r.metrics.compositeScore, 0) / total).toFixed(1)
+        : "0.0";
+      const oralPending = enrichedAll.filter((r) => r.metrics.statusShort === "PASS - COMPETENT").length;
+
+      // Top Performing Dept/Category
+      const groupScores = {};
+      enrichedAll.forEach((r) => {
+        const key = `${r.department} ${r.rankCategory}`;
+        if (!groupScores[key]) groupScores[key] = { sum: 0, count: 0 };
+        groupScores[key].sum += r.metrics.compositeScore;
+        groupScores[key].count += 1;
+      });
+      let topGroup = "-";
+      let topGroupAvg = 0;
+      Object.entries(groupScores).forEach(([k, val]) => {
+        const avg = val.sum / val.count;
+        if (avg > topGroupAvg) {
+          topGroupAvg = avg;
+          topGroup = k;
+        }
+      });
+
+      document.getElementById("kpiTotalCandidates").textContent = total;
+      document.getElementById("kpiPassRate").textContent = `${passRate}%`;
+      document.getElementById("kpiAvgScore").textContent = `${avgComposite}%`;
+      document.getElementById("kpiTopDept").textContent = topGroup;
+      document.getElementById("kpiTopDeptSub").textContent = topGroup !== "-" ? `Avg Score: ${topGroupAvg.toFixed(1)}%` : "No data";
+      document.getElementById("kpiOralPending").textContent = oralPending;
+
+      // Filter records for table
+      const filtered = enrichedAll.filter((r) => {
+        const matchesSearch =
+          !searchVal ||
+          r.fullName.toLowerCase().includes(searchVal) ||
+          r.rankApplied.toLowerCase().includes(searchVal) ||
+          r.vesselType.toLowerCase().includes(searchVal) ||
+          r.cocGrade.toLowerCase().includes(searchVal);
+        const matchesDept = deptVal === "ALL" || r.department === deptVal;
+        const matchesCat = catVal === "ALL" || r.rankCategory === catVal;
+        const matchesStatus = statusVal === "ALL" || r.metrics.statusShort === statusVal;
+        return matchesSearch && matchesDept && matchesCat && matchesStatus;
+      });
+
+      const tbody = document.getElementById("candidateTableBody");
+      const emptyMsg = document.getElementById("emptyTableMessage");
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = "";
+        emptyMsg.classList.remove("hidden");
+      } else {
+        emptyMsg.classList.add("hidden");
+        tbody.innerHTML = filtered
+          .map((r) => {
+            const m = r.metrics;
+            return `
+              <tr class="hover:bg-slate-50/90 transition">
+                <td class="py-3.5 px-4 font-bold text-navy-900">
+                  <div>${escapeHtml(r.fullName)}</div>
+                  <div class="text-[11px] font-normal text-slate-400">${escapeHtml(r.id)}</div>
+                </td>
+                <td class="py-3.5 px-4 font-semibold text-slate-800">${escapeHtml(r.rankApplied)}</td>
+                <td class="py-3.5 px-4">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold ${r.department === 'Deck' ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">
+                    ${escapeHtml(r.department)} • ${escapeHtml(r.rankCategory)}
+                  </span>
+                </td>
+                <td class="py-3.5 px-4 text-slate-700">
+                  <div class="font-medium">${escapeHtml(r.vesselType)}</div>
+                  <div class="text-[11px] text-slate-400">${escapeHtml(r.gtKw)}</div>
+                </td>
+                <td class="py-3.5 px-4 text-slate-700 font-medium">${escapeHtml(r.cocGrade)}</td>
+                <td class="py-3.5 px-4 text-slate-600 whitespace-nowrap">${escapeHtml(r.testDate)}</td>
+                <td class="py-3.5 px-4 text-center">
+                  <div class="font-bold text-navy-800">${m.charWeighted.toFixed(1)}%</div>
+                  <div class="text-[10px] text-slate-400">${m.charCorrect}/15</div>
+                </td>
+                <td class="py-3.5 px-4 text-center">
+                  <div class="font-bold text-navy-800">${m.roleWeighted.toFixed(1)}%</div>
+                  <div class="text-[10px] text-slate-400">${m.roleCorrect}/20</div>
+                </td>
+                <td class="py-3.5 px-4 text-center">
+                  <span class="text-sm font-extrabold ${m.compositeScore >= 80 ? 'text-emerald-600' : m.compositeScore >= 70 ? 'text-amber-600' : 'text-rose-600'}">
+                    ${m.compositeScore.toFixed(1)}%
+                  </span>
+                </td>
+                <td class="py-3.5 px-4 whitespace-nowrap">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border ${m.badgeClass}">
+                    ${m.statusShort}
+                  </span>
+                </td>
+                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                  <div class="inline-flex items-center gap-1.5">
+                    <button onclick="openScorecardModal('${r.id}')" class="px-2.5 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-700 text-white text-[11px] font-semibold shadow-sm transition">
+                      View Executive Scorecard
+                    </button>
+                    <button onclick="deleteCandidateRecord('${r.id}')" title="Delete Record" class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      renderCharts(enrichedAll);
+    }
+
+    function renderCharts(enrichedAll) {
+      // 1. Grouped Bar Chart: 3 Pillars across 4 Role Categories
+      const categories = ["Deck Officer", "Deck Rating", "Engine Officer", "Engine Rating"];
+      const p1Data = [];
+      const p2Data = [];
+      const p3Data = [];
+
+      categories.forEach((cat) => {
+        const matching = enrichedAll.filter((r) => `${r.department} ${r.rankCategory}` === cat);
+        if (matching.length === 0) {
+          p1Data.push(0);
+          p2Data.push(0);
+          p3Data.push(0);
+        } else {
+          p1Data.push(Math.round(matching.reduce((s, r) => s + r.metrics.pillar1Pct, 0) / matching.length));
+          p2Data.push(Math.round(matching.reduce((s, r) => s + r.metrics.pillar2Pct, 0) / matching.length));
+          p3Data.push(Math.round(matching.reduce((s, r) => s + r.metrics.pillar3Pct, 0) / matching.length));
+        }
+      });
+
+      const barCtx = document.getElementById("pillarBarChart").getContext("2d");
+      if (pillarBarChartInstance) pillarBarChartInstance.destroy();
+
+      pillarBarChartInstance = new Chart(barCtx, {
+        type: "bar",
+        data: {
+          labels: categories,
+          datasets: [
+            {
+              label: "Character, Integrity & Safety (30%)",
+              data: p1Data,
+              backgroundColor: "#0B1F3A",
+              borderRadius: 6
+            },
+            {
+              label: "Technical Knowledge (Q1–Q10)",
+              data: p2Data,
+              backgroundColor: "#D97706",
+              borderRadius: 6
+            },
+            {
+              label: "Practical & Emergency Scenarios (Q11–Q20)",
+              data: p3Data,
+              backgroundColor: "#059669",
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: (val) => val + "%",
+                font: { size: 11 }
+              },
+              grid: { color: "#E2E8F0" }
+            },
+            x: {
+              ticks: { font: { size: 11, weight: "600" } },
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { boxWidth: 12, font: { size: 11 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}%`
+              }
+            }
+          }
+        }
+      });
+
+      // 2. Doughnut Chart: Outcome Verdicts
+      const excCount = enrichedAll.filter((r) => r.metrics.statusShort === "PASS - EXCELLENT").length;
+      const compCount = enrichedAll.filter((r) => r.metrics.statusShort === "PASS - COMPETENT").length;
+      const failCount = enrichedAll.filter((r) => r.metrics.statusShort === "FAIL").length;
+
+      document.getElementById("legendExcellent").textContent = excCount;
+      document.getElementById("legendCompetent").textContent = compCount;
+      document.getElementById("legendFail").textContent = failCount;
+
+      const doughCtx = document.getElementById("outcomeDoughnutChart").getContext("2d");
+      if (outcomeDoughnutChartInstance) outcomeDoughnutChartInstance.destroy();
+
+      outcomeDoughnutChartInstance = new Chart(doughCtx, {
+        type: "doughnut",
+        data: {
+          labels: ["PASS - EXCELLENT (≥80%)", "PASS - COMPETENT (70-79%)", "FAIL (<70%)"],
+          datasets: [
+            {
+              data: [excCount, compCount, failCount],
+              backgroundColor: ["#059669", "#F59E0B", "#E11D48"],
+              borderWidth: 2,
+              borderColor: "#FFFFFF"
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "66%",
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function deleteCandidateRecord(id) {
+      if (!confirm("Are you sure you want to delete this candidate record?")) return;
+      candidateRecords = candidateRecords.filter((r) => r.id !== id);
+      saveRecordsToStorage();
+      if (supabaseClient) {
+        supabaseClient.from('candidate_records').delete().eq('id', id).then(({ error }) => {
+          if (error) console.error("Supabase delete error:", error);
+        });
+      }
+      renderDashboard();
+      showToast("Candidate assessment record removed from log.", "warning");
+    }
+
+    function exportCandidatesCSV() {
+      const headers = [
+        "Candidate_ID",
+        "Full_Name",
+        "Rank_Applied",
+        "Department",
+        "Rank_Category",
+        "Vessel_Type_GT_KW",
+        "CoC_CoP_Grade",
+        "Test_Date",
+        "Proctor",
+        "Role_Module",
+        "Char_Correct_of_15",
+        "Char_Weighted_30pct",
+        "Tech_Correct_of_10",
+        "Prac_Correct_of_10",
+        "Role_Weighted_70pct",
+        "Final_Composite_Score",
+        "Verdict_Status",
+        "Time_Taken",
+        "Certificate_Suitability",
+        "Oral_Verification_Notes"
+      ];
+
+      const rows = candidateRecords.map((r) => {
+        const m = computeCandidateMetrics(r);
+        return [
+          r.id,
+          r.fullName,
+          r.rankApplied,
+          r.department,
+          r.rankCategory,
+          `${r.vesselType} (${r.gtKw})`,
+          r.cocGrade,
+          r.testDate,
+          r.proctor,
+          r.roleModule,
+          r.charCorrect,
+          `${m.charWeighted}%`,
+          r.techCorrect,
+          r.pracCorrect,
+          `${m.roleWeighted}%`,
+          `${m.compositeScore}%`,
+          m.statusShort,
+          r.timeTaken || "",
+          r.certSuitability || "",
+          r.oralNotes || ""
+        ].map((val) => `"${String(val).replace(/"/g, '""')}"`);
+      });
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PT_SOSM_Crew_Assessment_Log_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("Exported candidate assessment log to CSV (Excel-compatible).", "success");
+    }
+
+    // =========================================================================
+    // 6. EXECUTIVE SCORECARD MODAL
+    // =========================================================================
+    function openScorecardModal(candidateId) {
+      const rec = candidateRecords.find((r) => r.id === candidateId);
+      if (!rec) return;
+
+      activeScorecardId = candidateId;
+      const m = computeCandidateMetrics(rec);
+
+      document.getElementById("scName").textContent = rec.fullName;
+      document.getElementById("scRank").textContent = rec.rankApplied;
+      document.getElementById("scDeptCat").textContent = `${rec.department} — ${rec.rankCategory}`;
+      document.getElementById("scCoc").textContent = rec.cocGrade;
+      document.getElementById("scVessel").textContent = `${rec.vesselType} | ${rec.gtKw}`;
+      document.getElementById("scDate").textContent = rec.testDate;
+      document.getElementById("scProctor").textContent = rec.proctor;
+
+      const banner = document.getElementById("scVerdictBanner");
+      banner.className = `p-4 rounded-xl border-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 ${m.badgeClass}`;
+      document.getElementById("scVerdictText").textContent = m.verdictFull;
+      document.getElementById("scCompositeBig").textContent = `${m.compositeScore.toFixed(1)}%`;
+
+      document.getElementById("scCharCorrect").textContent = `${m.charCorrect} / 15`;
+      document.getElementById("scCharRaw").textContent = `${m.charRawPct.toFixed(1)}%`;
+      document.getElementById("scCharWeighted").textContent = `${m.charWeighted.toFixed(2)}%`;
+
+      document.getElementById("scRoleModuleName").textContent = `${rec.roleModule} (Technical & Practical)`;
+      document.getElementById("scRoleCorrect").textContent = `${m.roleCorrect} / 20`;
+      document.getElementById("scRoleRaw").textContent = `${m.roleRawPct.toFixed(1)}%`;
+      document.getElementById("scRoleWeighted").textContent = `${m.roleWeighted.toFixed(2)}%`;
+
+      document.getElementById("scTotalComposite").textContent = `${m.compositeScore.toFixed(2)}%`;
+
+      // Pillars
+      document.getElementById("scPillar1Pct").textContent = `${m.pillar1Pct}%`;
+      document.getElementById("scPillar1Count").textContent = `${m.charCorrect} / 15 Correct (1_Character_MCQ)`;
+      document.getElementById("scPillar1Bar").style.width = `${m.pillar1Pct}%`;
+
+      document.getElementById("scPillar2Pct").textContent = `${m.pillar2Pct}%`;
+      document.getElementById("scPillar2Count").textContent = `${m.techCorrect} / 10 Correct (${rec.roleModule} Q1–Q10)`;
+      document.getElementById("scPillar2Bar").style.width = `${m.pillar2Pct}%`;
+
+      document.getElementById("scPillar3Pct").textContent = `${m.pillar3Pct}%`;
+      document.getElementById("scPillar3Count").textContent = `${m.pracCorrect} / 10 Correct (${rec.roleModule} Q11–Q20)`;
+      document.getElementById("scPillar3Bar").style.width = `${m.pillar3Pct}%`;
+
+      // Editable Proctor Remarks
+      document.getElementById("scTimeTaken").value = rec.timeTaken || "";
+      document.getElementById("scCertSuitability").value = rec.certSuitability || "";
+      document.getElementById("scOralNotes").value = rec.oralNotes || "";
+
+      document.getElementById("scorecardModal").classList.remove("hidden");
+    }
+
+    function closeScorecardModal() {
+      document.getElementById("scorecardModal").classList.add("hidden");
+      activeScorecardId = null;
+    }
+
+    function saveScorecardRemarks() {
+      if (!activeScorecardId) return;
+      const idx = candidateRecords.findIndex((r) => r.id === activeScorecardId);
+      if (idx === -1) return;
+
+      candidateRecords[idx].timeTaken = document.getElementById("scTimeTaken").value.trim();
+      candidateRecords[idx].certSuitability = document.getElementById("scCertSuitability").value.trim();
+      candidateRecords[idx].oralNotes = document.getElementById("scOralNotes").value.trim();
+
+      saveRecordsToStorage();
+
+      if (supabaseClient) {
+        supabaseClient
+          .from('candidate_records')
+          .update({
+            time_taken: candidateRecords[idx].timeTaken,
+            cert_suitability: candidateRecords[idx].certSuitability,
+            oral_notes: candidateRecords[idx].oralNotes
+          })
+          .eq('id', activeScorecardId)
+          .then(({ error }) => {
+            if (error) console.error("Supabase update error:", error);
+          });
+      }
+
+      renderDashboard();
+      showToast("Proctor remarks & certificate verification saved to Executive Scorecard.", "success");
+    }
+
+    // =========================================================================
+    // 7. TAB 2: LIVE CANDIDATE EXAM PORTAL (35 QUESTIONS)
+    // =========================================================================
+    function updateAssignedModulePreview() {
+      const dept = document.getElementById("candDept").value;
+      const cat = document.getElementById("candCategory").value;
+      const modKey = getRoleModuleKey(dept, cat);
+
+      const descriptions = {
+        "2_Deck_Officer_MCQ": "COLREGs, ECDIS, Squat/UKC, Stability, MARPOL, GMDSS, MOB, ARPA, BRM & Anchoring (20 Qs)",
+        "3_Deck_Rating_MCQ": "Helm Commands, Lights/Fog Signals, Lookout, PPE, ISPS Gangway, Snap-Back Zones & Pilot Ladder (20 Qs)",
+        "4_Engine_Officer_MCQ": "2-Stroke Exhaust, Synchronizing, SOLAS Blackout, OWS 15ppm, ECA Fuel, Crankcase OMD, LOTO & CO2 (20 Qs)",
+        "5_Engine_Rating_MCQ": "ER Watch Rounds, Oil Fires, Sounding Cocks, ISO Pipes, EEBD, Duplex Strainer & Bilge Alarms (20 Qs)"
+      };
+
+      document.getElementById("assignedRoleModuleTitle").textContent = modKey;
+      document.getElementById("assignedRoleModuleDesc").textContent = descriptions[modKey];
+    }
+
+    function startCandidateExam(event) {
+      event.preventDefault();
+      const fullName = document.getElementById("candName").value.trim();
+      const rankApplied = document.getElementById("candRank").value.trim();
+      const department = document.getElementById("candDept").value;
+      const rankCategory = document.getElementById("candCategory").value;
+      const vesselType = document.getElementById("candVesselType").value;
+      const gtKw = document.getElementById("candGtKw").value.trim();
+      const cocGrade = document.getElementById("candCoc").value;
+      const testDate = document.getElementById("candTestDate").value;
+      const proctor = document.getElementById("candProctor").value.trim();
+
+      const roleModule = getRoleModuleKey(department, rankCategory);
+
+      // Build 35-question array (15 Character + 20 Role)
+      const charQs = QUESTION_BANK["1_Character_MCQ"].map((q, idx) => ({
+        ...q,
+        examNumber: idx + 1,
+        section: "PART A • CHARACTER & SAFETY CULTURE (30%)",
+        moduleName: "1_Character_MCQ"
+      }));
+
+      const roleQs = QUESTION_BANK[roleModule].map((q, idx) => ({
+        ...q,
+        examNumber: idx + 16,
+        section: idx < 10
+          ? `PART B1 • TECHNICAL KNOWLEDGE — ${roleModule} (35%)`
+          : `PART B2 • PRACTICAL & EMERGENCY SCENARIOS — ${roleModule} (35%)`,
+        moduleName: roleModule
+      }));
+
+      currentExamSession = {
+        profile: {
+          fullName,
+          rankApplied,
+          department,
+          rankCategory,
+          vesselType,
+          gtKw,
+          cocGrade,
+          testDate,
+          proctor,
+          roleModule
+        },
+        questions: [...charQs, ...roleQs],
+        answers: {}
+      };
+
+      // Update UI headers
+      document.getElementById("examHeaderCandidate").textContent = fullName;
+      document.getElementById("examHeaderRank").textContent = `${rankApplied} (${department} ${rankCategory})`;
+      document.getElementById("examHeaderModule").textContent = `${roleModule} (20)`;
+      document.getElementById("proctorRevealToggle").checked = false;
+
+      // Switch setup -> active exam view
+      document.getElementById("examSetupContainer").classList.add("hidden");
+      document.getElementById("activeExamContainer").classList.remove("hidden");
+
+      // Start 45-min countdown
+      startExamTimer();
+      renderExamQuestions();
+      updateExamProgress();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      showToast(`Assessment started for ${fullName} (${roleModule}).`, "info");
+    }
+
+    function startExamTimer() {
+      if (examTimerInterval) clearInterval(examTimerInterval);
+      examSecondsRemaining = 45 * 60;
+      examTimerPaused = false;
+      examStartTimestamp = Date.now();
+      document.getElementById("btnToggleTimer").textContent = "Pause";
+      updateTimerDisplay();
+
+      examTimerInterval = setInterval(() => {
+        if (!examTimerPaused && examSecondsRemaining > 0) {
+          examSecondsRemaining -= 1;
+          updateTimerDisplay();
+          if (examSecondsRemaining === 300) {
+            showToast("5 minutes remaining on the assessment timer!", "warning");
+          }
+          if (examSecondsRemaining === 0) {
+            clearInterval(examTimerInterval);
+            showToast("Time expired! Auto-submitting candidate responses...", "danger");
+            submitCandidateExam(true);
+          }
+        }
+      }, 1000);
+    }
+
+    function toggleExamTimer() {
+      examTimerPaused = !examTimerPaused;
+      document.getElementById("btnToggleTimer").textContent = examTimerPaused ? "Resume" : "Pause";
+      showToast(examTimerPaused ? "Exam timer paused by Proctor." : "Exam timer resumed.", "info");
+    }
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(examSecondsRemaining / 60);
+      const secs = examSecondsRemaining % 60;
+      const formatted = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+      const el = document.getElementById("examTimerDisplay");
+      el.textContent = formatted;
+      if (examSecondsRemaining <= 300) {
+        el.classList.add("text-rose-400");
+        el.classList.remove("text-white");
+      } else {
+        el.classList.remove("text-rose-400");
+        el.classList.add("text-white");
+      }
+    }
+
+    function renderExamQuestions() {
+      if (!currentExamSession) return;
+      const revealKeys = document.getElementById("proctorRevealToggle").checked;
+      const container = document.getElementById("examQuestionsList");
+
+      let lastSection = "";
+      container.innerHTML = currentExamSession.questions
+        .map((q) => {
+          let sectionBanner = "";
+          if (q.section !== lastSection) {
+            lastSection = q.section;
+            sectionBanner = `
+              <div class="bg-navy-800 text-amber-300 px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm mt-6 first:mt-0">
+                ${escapeHtml(q.section)}
+              </div>
+            `;
+          }
+
+          const selectedOpt = currentExamSession.answers[q.examNumber] || "";
+
+          const optionsHtml = ["A", "B", "C", "D"]
+            .map((optKey) => {
+              const isSelected = selectedOpt === optKey;
+              const isCorrect = q.key === optKey;
+              let cardBorder = isSelected
+                ? "border-navy-800 bg-navy-900/5 ring-1 ring-navy-800"
+                : "border-slate-200 hover:border-amber-400 hover:bg-slate-50";
+
+              if (revealKeys && isCorrect) {
+                cardBorder = "border-emerald-500 bg-emerald-50/80 ring-1 ring-emerald-500";
+              }
+
+              return `
+                <label onclick="selectExamAnswer(${q.examNumber}, '${optKey}')" class="flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition select-none ${cardBorder}">
+                  <input type="radio" name="exam_q_${q.examNumber}" value="${optKey}" ${isSelected ? "checked" : ""} class="mt-0.5 text-navy-900 focus:ring-amber-500" />
+                  <div class="text-xs sm:text-sm text-slate-800 flex-1">
+                    <span class="font-bold text-navy-900 mr-1.5">${optKey}.</span>
+                    <span>${escapeHtml(q.options[optKey])}</span>
+                    ${revealKeys && isCorrect ? '<span class="ml-2 inline-block px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold">CORRECT KEY</span>' : ""}
+                  </div>
+                </label>
+              `;
+            })
+            .join("");
+
+          return `
+            ${sectionBanner}
+            <div id="exam-card-${q.examNumber}" class="bg-white rounded-2xl p-5 border ${selectedOpt ? 'border-emerald-300' : 'border-slate-200'} shadow-sm scroll-mt-40">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-lg bg-navy-900 text-white text-xs font-extrabold">
+                    Q${q.examNumber}
+                  </span>
+                  <span class="text-xs font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
+                    ${escapeHtml(q.pillar)}
+                  </span>
+                </div>
+                <span class="text-[11px] font-semibold ${selectedOpt ? 'text-emerald-600' : 'text-slate-400'}">
+                  ${selectedOpt ? `Selected: Option ${selectedOpt}` : "Unanswered"}
+                </span>
+              </div>
+              <p class="text-sm sm:text-base font-semibold text-navy-950 leading-relaxed mb-4">
+                ${escapeHtml(q.question)}
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                ${optionsHtml}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    function selectExamAnswer(examNumber, optionKey) {
+      if (!currentExamSession) return;
+      currentExamSession.answers[examNumber] = optionKey;
+      renderExamQuestions();
+      updateExamProgress();
+    }
+
+    function updateExamProgress() {
+      if (!currentExamSession) return;
+      const total = currentExamSession.questions.length;
+      const answered = Object.keys(currentExamSession.answers).length;
+      const pct = Math.round((answered / total) * 100);
+
+      document.getElementById("examProgressText").textContent = `Answered ${answered} / ${total} Questions (${pct}%)`;
+      document.getElementById("examProgressBar").style.width = `${pct}%`;
+
+      // Render Quick Navigation Pills
+      const pillsContainer = document.getElementById("questionNavPills");
+      pillsContainer.innerHTML = currentExamSession.questions
+        .map((q) => {
+          const isAns = Boolean(currentExamSession.answers[q.examNumber]);
+          return `
+            <button type="button" onclick="scrollToExamQuestion(${q.examNumber})" class="w-8 h-8 rounded-lg text-xs font-bold transition ${isAns
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "bg-slate-100 text-slate-600 border border-slate-300 hover:bg-amber-100"
+            }">
+              ${q.examNumber}
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    function scrollToExamQuestion(num) {
+      const el = document.getElementById(`exam-card-${num}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function autoFillDemoAnswers() {
+      if (!currentExamSession) return;
+      // Fill ~85% correct answers so proctor can quickly test the auto-grader
+      currentExamSession.questions.forEach((q, idx) => {
+        if (idx % 7 === 0) {
+          currentExamSession.answers[q.examNumber] = q.key === "A" ? "B" : "A";
+        } else {
+          currentExamSession.answers[q.examNumber] = q.key;
+        }
+      });
+      renderExamQuestions();
+      updateExamProgress();
+      showToast("Proctor Quick-Fill populated all 35 answers for demo evaluation.", "info");
+    }
+
+    function cancelActiveExam() {
+      if (examTimerInterval) clearInterval(examTimerInterval);
+      currentExamSession = null;
+      document.getElementById("activeExamContainer").classList.add("hidden");
+      document.getElementById("examSetupContainer").classList.remove("hidden");
+      showToast("Active exam session cancelled.", "warning");
+    }
+
+    function submitCandidateExam(forceSubmit = false) {
+      if (!currentExamSession) return;
+
+      const answeredCount = Object.keys(currentExamSession.answers).length;
+      if (!forceSubmit && answeredCount < 35) {
+        const firstUnanswered = currentExamSession.questions.find((q) => !currentExamSession.answers[q.examNumber]);
+        if (firstUnanswered) {
+          scrollToExamQuestion(firstUnanswered.examNumber);
+        }
+        showToast(`Please complete all 35 questions before submitting (${answeredCount}/35 answered).`, "warning");
+        return;
+      }
+
+      if (examTimerInterval) clearInterval(examTimerInterval);
+
+      // Calculate exact scores across the 3 pillars
+      let charCorrect = 0;
+      let techCorrect = 0;
+      let pracCorrect = 0;
+
+      currentExamSession.questions.forEach((q) => {
+        const chosen = currentExamSession.answers[q.examNumber];
+        if (chosen === q.key) {
+          if (q.examNumber <= 15) {
+            charCorrect += 1;
+          } else if (q.examNumber <= 25) {
+            techCorrect += 1;
+          } else {
+            pracCorrect += 1;
+          }
+        }
+      });
+
+      const elapsedMins = Math.max(1, Math.round((Date.now() - examStartTimestamp) / 60000));
+      const newId = `CAND-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const newRecord = {
+        id: newId,
+        fullName: currentExamSession.profile.fullName,
+        rankApplied: currentExamSession.profile.rankApplied,
+        department: currentExamSession.profile.department,
+        rankCategory: currentExamSession.profile.rankCategory,
+        vesselType: currentExamSession.profile.vesselType,
+        gtKw: currentExamSession.profile.gtKw,
+        cocGrade: currentExamSession.profile.cocGrade,
+        testDate: currentExamSession.profile.testDate,
+        proctor: currentExamSession.profile.proctor,
+        roleModule: currentExamSession.profile.roleModule,
+        charCorrect,
+        techCorrect,
+        pracCorrect,
+        timeTaken: `${elapsedMins} mins`,
+        certSuitability: `${currentExamSession.profile.cocGrade} submitted for verification.`,
+        oralNotes: "Auto-graded via PT SOSM Online Assessment Portal."
+      };
+
+      candidateRecords.unshift(newRecord);
+      saveRecordsToStorage();
+
+      if (supabaseClient) {
+        supabaseClient
+          .from('candidate_records')
+          .insert(recordToSupabase(newRecord))
+          .then(({ error }) => {
+            if (error) console.error("Supabase insert error:", error);
+          });
+      }
+
+      // Reset Exam UI
+      currentExamSession = null;
+      document.getElementById("candidateSetupForm").reset();
+      document.getElementById("candTestDate").value = new Date().toISOString().slice(0, 10);
+      document.getElementById("candProctor").value = "Crewing Superintendent - PT SOSM";
+      updateAssignedModulePreview();
+
+      document.getElementById("activeExamContainer").classList.add("hidden");
+      document.getElementById("examSetupContainer").classList.remove("hidden");
+
+      // Switch to Dashboard and immediately open Executive Scorecard
+      switchTab("dashboard");
+      openScorecardModal(newId);
+      showToast(`Assessment graded & saved for ${newRecord.fullName}!`, "success");
+    }
+
+    // =========================================================================
+    // 8. TAB 3: QUESTION BANK & ANSWER KEY MASTER (95 QUESTIONS)
+    // =========================================================================
+    function selectBankModule(modName) {
+      selectedBankModule = modName;
+      document.querySelectorAll(".bank-mod-btn").forEach((btn) => {
+        if (btn.getAttribute("data-mod") === modName) {
+          btn.className = "bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-navy-900 text-white";
+        } else {
+          btn.className = "bank-mod-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200";
+        }
+      });
+      renderQuestionBank();
+    }
+
+    function toggleBankAnswerKeys() {
+      showBankKeys = !showBankKeys;
+      document.getElementById("btnToggleBankKeysLabel").textContent = showBankKeys
+        ? "Hide Answer Keys"
+        : "Show Answer Keys";
+      renderQuestionBank();
+    }
+
+    function renderQuestionBank() {
+      const search = (document.getElementById("bankSearchInput").value || "").toLowerCase().trim();
+      const container = document.getElementById("questionBankContainer");
+
+      const modulesToRender =
+        selectedBankModule === "ALL" ? Object.keys(QUESTION_BANK) : [selectedBankModule];
+
+      let allMatchingCards = [];
+
+      modulesToRender.forEach((modKey) => {
+        const list = QUESTION_BANK[modKey] || [];
+        list.forEach((q) => {
+          const hay = `${modKey} ${q.pillar} ${q.question} ${q.options.A} ${q.options.B} ${q.options.C} ${q.options.D}`.toLowerCase();
+          if (!search || hay.includes(search)) {
+            allMatchingCards.push({ modKey, ...q });
+          }
+        });
+      });
+
+      if (allMatchingCards.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl p-8 text-center text-slate-500 border border-slate-200 text-sm">
+            Tidak ditemukan soal yang cocok dengan kata kunci pencarian Anda.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = allMatchingCards
+        .map((item) => {
+          const optsHtml = ["A", "B", "C", "D"]
+            .map((k) => {
+              const isKey = showBankKeys && item.key === k;
+              return `
+                <div class="p-3 rounded-xl border text-xs ${isKey
+                  ? "bg-emerald-50 border-emerald-400 text-emerald-950 font-semibold"
+                  : "bg-slate-50/70 border-slate-200 text-slate-700"
+                }">
+                  <span class="font-bold mr-1.5">${k}.</span>
+                  <span>${escapeHtml(item.options[k])}</span>
+                  ${isKey ? '<span class="ml-2 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold">KEY</span>' : ""}
+                </div>
+              `;
+            })
+            .join("");
+
+          return `
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-md bg-navy-900 text-white text-[11px] font-bold">
+                    ${escapeHtml(item.modKey)} • Q${item.qNum}
+                  </span>
+                  <span class="px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-semibold">
+                    ${escapeHtml(item.pillar)}
+                  </span>
+                </div>
+                ${showBankKeys
+              ? `<span class="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">Answer Key: ${item.key}</span>`
+              : `<span class="text-xs text-slate-400 italic">Answer Key Hidden</span>`
+            }
+              </div>
+              <p class="text-sm font-semibold text-navy-950 mb-3">${escapeHtml(item.question)}</p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                ${optsHtml}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+    }
+
+    // =========================================================================
+    // 9. XSS ESCAPE & INITIALIZATION
+    // =========================================================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // Default today's date in Exam Form
+      const dateInput = document.getElementById("candTestDate");
+      if (dateInput) {
+        dateInput.value = new Date().toISOString().slice(0, 10);
+      }
+
+      loadRecordsFromStorage();
+      updateAssignedModulePreview();
+      renderDashboard();
+      renderQuestionBank();
+      initSupabase();
+    });
+  </script>
+</body>
+
+</html>
