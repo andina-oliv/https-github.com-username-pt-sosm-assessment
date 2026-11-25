@@ -1412,6 +1412,14 @@ alter publication supabase_realtime add table public.candidate_records;</code></
             Close Window
           </button>
           <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="deleteActiveScorecardCandidate()"
+              class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200 transition flex items-center gap-1.5"
+              title="Hapus data kandidat ini dari sistem">
+              <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              <span>Hapus Data</span>
+            </button>
             <button type="button" onclick="saveScorecardRemarks()"
               class="px-3.5 py-2 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-xs font-semibold shadow-sm transition">
               Save Remarks
@@ -2926,29 +2934,53 @@ alter publication supabase_realtime add table public.candidate_records;</code></
       }, 4500);
     }
 
+    const DELETED_STORAGE_KEY = "pt_sosm_deleted_candidate_ids_v1";
+
+    function getDeletedIds() {
+      try {
+        const d = localStorage.getItem(DELETED_STORAGE_KEY);
+        return d ? JSON.parse(d) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function addDeletedId(id) {
+      try {
+        const list = getDeletedIds();
+        if (!list.includes(id)) {
+          list.push(id);
+          localStorage.setItem(DELETED_STORAGE_KEY, JSON.stringify(list));
+        }
+      } catch (e) { }
+    }
+
     function loadRecordsFromStorage() {
+      const deletedIds = getDeletedIds();
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            candidateRecords = parsed.map(r => {
-              const defaultMatch = DEFAULT_CANDIDATES.find(d => d.id === r.id);
-              return {
-                ...r,
-                phone: r.phone || (defaultMatch ? defaultMatch.phone : ""),
-                email: r.email || (defaultMatch ? defaultMatch.email : ""),
-                seamanBook: r.seamanBook || (defaultMatch ? defaultMatch.seamanBook : ""),
-                passport: r.passport || (defaultMatch ? defaultMatch.passport : "")
-              };
-            });
+          if (Array.isArray(parsed)) {
+            candidateRecords = parsed
+              .filter((r) => !deletedIds.includes(r.id))
+              .map((r) => {
+                const defaultMatch = DEFAULT_CANDIDATES.find((d) => d.id === r.id);
+                return {
+                  ...r,
+                  phone: r.phone || (defaultMatch ? defaultMatch.phone : ""),
+                  email: r.email || (defaultMatch ? defaultMatch.email : ""),
+                  seamanBook: r.seamanBook || (defaultMatch ? defaultMatch.seamanBook : ""),
+                  passport: r.passport || (defaultMatch ? defaultMatch.passport : "")
+                };
+              });
             return;
           }
         }
       } catch (e) {
         console.warn("Storage load fallback:", e);
       }
-      candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES));
+      candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES)).filter((r) => !deletedIds.includes(r.id));
       saveRecordsToStorage();
     }
 
@@ -2961,10 +2993,12 @@ alter publication supabase_realtime add table public.candidate_records;</code></
     }
 
     function resetDemoData() {
+      if (!confirm("Reset semua data kandidat ke 5 data demo awal?")) return;
+      localStorage.removeItem(DELETED_STORAGE_KEY);
       candidateRecords = JSON.parse(JSON.stringify(DEFAULT_CANDIDATES));
       saveRecordsToStorage();
       renderDashboard();
-      showToast("Sample candidate log restored to default 5 records.", "info");
+      showToast("Data kandidat berhasil di-reset ke 5 data demo awal.", "info");
     }
 
     // =========================================================================
@@ -3105,18 +3139,24 @@ alter publication supabase_realtime add table public.candidate_records;</code></
 
       if (url && key && window.supabase) {
         try {
-          supabaseClient = window.supabase.createClient(url, key);
-          updateSupabaseModalUI();
-          await fetchRecordsFromSupabase();
-          subscribeToSupabaseRealtime();
+          const testClient = window.supabase.createClient(url, key);
+          const { error } = await testClient.from('candidate_records').select('id').limit(1);
+          if (error) {
+            console.warn("Supabase connection check failed:", error.message);
+            supabaseClient = null;
+          } else {
+            supabaseClient = testClient;
+            await fetchRecordsFromSupabase();
+            subscribeToSupabaseRealtime();
+          }
         } catch (e) {
           console.warn("Supabase auto-init failed:", e);
           supabaseClient = null;
-          updateSupabaseModalUI();
         }
       } else {
-        updateSupabaseModalUI();
+        supabaseClient = null;
       }
+      updateSupabaseModalUI();
     }
 
     async function saveAndConnectSupabase() {
@@ -3671,16 +3711,33 @@ alter publication supabase_realtime add table public.candidate_records;</code></
     }
 
     function deleteCandidateRecord(id) {
-      if (!confirm("Are you sure you want to delete this candidate record?")) return;
+      const rec = candidateRecords.find((r) => r.id === id);
+      const name = rec ? rec.fullName : id;
+      if (!confirm(`Hapus data hasil ujian kandidat: ${name} (${id})?`)) return;
+
+      addDeletedId(id);
       candidateRecords = candidateRecords.filter((r) => r.id !== id);
       saveRecordsToStorage();
+
       if (supabaseClient) {
-        supabaseClient.from('candidate_records').delete().eq('id', id).then(({ error }) => {
-          if (error) console.error("Supabase delete error:", error);
-        });
+        supabaseClient
+          .from('candidate_records')
+          .delete()
+          .eq('id', id)
+          .then(({ error }) => {
+            if (error) console.warn("Supabase remote delete error:", error);
+          });
       }
+
       renderDashboard();
-      showToast("Candidate assessment record removed from log.", "warning");
+      showToast(`Data kandidat ${name} berhasil dihapus dari sistem.`, "warning");
+    }
+
+    function deleteActiveScorecardCandidate() {
+      if (!activeScorecardId) return;
+      const targetId = activeScorecardId;
+      closeScorecardModal();
+      deleteCandidateRecord(targetId);
     }
 
     function exportCandidatesCSV() {
